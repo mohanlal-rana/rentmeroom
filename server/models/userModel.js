@@ -31,29 +31,17 @@ const UserSchema = new mongoose.Schema({
   owner: {
     phone: {
       type: String,
-      required: function () {
-        return this.role === "owner";
-      }
     },
     profileImage: String,
     address: String,
     govIDType: {
       type: String,
-      required: function () {
-        return this.role === "owner";
-      }
     },
     govIDNumber: {
       type: String,
-      required: function () {
-        return this.role === "owner";
-      }
     },
     govIDImage: {
       type: String,
-      required: function () {
-        return this.role === "owner";
-      }
     },
     facebook: String,
     whatsapp: String,
