@@ -7,24 +7,24 @@ const UserSchema = new mongoose.Schema({
   // Basic info (mandatory for all users)
   name: {
     type: String,
-    required: true
+    required: true,
   },
 
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
 
   password: {
     type: String,
-    required: true
+    required: true,
   },
 
   role: {
     type: String,
     enum: ["user", "owner", "admin"],
-    default: "user"
+    default: "user",
   },
 
   // Owner-specific fields (filled when upgrading)
@@ -48,21 +48,20 @@ const UserSchema = new mongoose.Schema({
     bio: String,
     propertyCount: {
       type: Number,
-      default: 0
+      default: 0,
     },
     isVerified: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
 
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-// 🔐 Password Hashing
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   try {
@@ -74,24 +73,21 @@ UserSchema.pre("save", async function (next) {
   }
 });
 
-// 🔑 Compare Password
 UserSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-// 🎟 Generate JWT Token
 UserSchema.methods.generateToken = function () {
   return jwt.sign(
     {
       userId: this._id,
       email: this.email,
-      role: this.role
+      role: this.role,
     },
     process.env.JWT_SECRET_KEY,
     { expiresIn: "7d" }
   );
 };
 
-// Export Model (ES6)
 const User = mongoose.model("User", UserSchema);
 export default User;
