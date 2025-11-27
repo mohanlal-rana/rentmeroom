@@ -62,7 +62,7 @@ export const beOwner = async (req, res) => {
       return res.status(400).json({ message: "User is already an owner" });
     }
      console.log(phone,govIDNumber,govIDImage,govIDType)
-    // Validation
+     
     if (!phone || !govIDType || !govIDNumber || !govIDImage) {
       return res
         .status(400)
