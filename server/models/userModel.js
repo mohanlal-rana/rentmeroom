@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { is } from "zod/v4/locales";
 
 // Define Schema
 const UserSchema = new mongoose.Schema({
@@ -25,6 +26,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     enum: ["user", "owner", "admin"],
     default: "user",
+  },
+  saved:{
+    type: Array,
+    default: [],
   },
 
   // Owner-specific fields (filled when upgrading)
@@ -54,6 +59,11 @@ const UserSchema = new mongoose.Schema({
       type: Boolean,
       default: false,
     },
+  },
+
+  isActive: {
+    type: Boolean,
+    default: true,
   },
 
   createdAt: {
