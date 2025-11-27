@@ -4,73 +4,73 @@ import mongoose from "mongoose";
 import { is } from "zod/v4/locales";
 
 // Define Schema
-const UserSchema = new mongoose.Schema({
-  // Basic info (mandatory for all users)
-  name: {
-    type: String,
-    required: true,
-  },
-
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-
-  password: {
-    type: String,
-    required: true,
-  },
-
-  role: {
-    type: String,
-    enum: ["user", "owner", "admin"],
-    default: "user",
-  },
-  saved:{
-    type: Array,
-    default: [],
-  },
-
-  // Owner-specific fields (filled when upgrading)
-  owner: {
-    phone: {
+const UserSchema = new mongoose.Schema(
+  {
+    // Basic info (mandatory for all users)
+    name: {
       type: String,
+      required: true,
     },
-    profileImage: String,
-    address: String,
-    govIDType: {
+
+    email: {
       type: String,
+      required: true,
+      unique: true,
     },
-    govIDNumber: {
+
+    password: {
       type: String,
+      required: true,
     },
-    govIDImage: {
+
+    role: {
       type: String,
+      enum: ["user", "owner", "admin"],
+      default: "user",
     },
-    facebook: String,
-    whatsapp: String,
-    bio: String,
-    propertyCount: {
-      type: Number,
-      default: 0,
+    saved: {
+      type: Array,
+      default: [],
     },
-    isVerified: {
+
+    // Owner-specific fields (filled when upgrading)
+    owner: {
+      phone: {
+        type: String,
+      },
+      profileImage: String,
+      address: String,
+      govIDType: {
+        type: String,
+      },
+      govIDNumber: {
+        type: String,
+      },
+      govIDImage: {
+        type: String,
+      },
+      facebook: String,
+      whatsapp: String,
+      bio: String,
+      propertyCount: {
+        type: Number,
+        default: 0,
+      },
+      isVerified: {
+        type: Boolean,
+        default: false,
+      },
+    },
+
+    isActive: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
-
-  isActive: {
-    type: Boolean,
-    default: true,
-  },
-
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
