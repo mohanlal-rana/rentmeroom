@@ -14,16 +14,44 @@ function Signup() {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-    navigate("/verifyotp")
-    alert("otp sent your email");
-    setFormData({ name: "", email: "", password: "", confirmPassword: "" });
+    try {
+      const res = await fetch("http://localhost:3000/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Signup failed");
+        return;
+      }
+
+      console.log("Response:", data);
+
+      alert("otp is sent to your email!");
+      navigate('/verifyotp')
+
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Server error. Please try again.");
+    }
   };
 
   return (
