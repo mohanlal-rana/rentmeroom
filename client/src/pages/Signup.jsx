@@ -40,7 +40,7 @@ function Signup() {
       console.log("Response:", data);
 
       alert("otp is sent to your email!");
-      navigate('/verifyotp')
+      navigate('/verifyotp',{state: {email:formData.email}})
 
       setFormData({
         name: "",

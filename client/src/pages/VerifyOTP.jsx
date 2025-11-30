@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function VerifyOtp() {
   const navigate = useNavigate();
+  const location = useLocation()
+  const email = location.state?.email
   const [otp, setOtp] = useState("");
 
   const handleSubmit = async (e) => {
@@ -19,7 +21,7 @@ function VerifyOtp() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(otp),
+        body: JSON.stringify({email,otp}),
       });
 
       const data = await res.json();
