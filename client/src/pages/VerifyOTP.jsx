@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function VerifyOtp() {
+  const navigate = useNavigate();
   const [otp, setOtp] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (otp.length !== 6) {
@@ -11,9 +13,32 @@ function VerifyOtp() {
       return;
     }
 
-    console.log("Entered OTP:", otp);
-    alert("OTP Verified Successfully!");
-    setOtp("");
+    try {
+      const res = await fetch("http://localhost:3000/api/auth/verifyotp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(otp),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "otp verification failed");
+        return;
+      }
+
+      console.log("Response:", data);
+
+      alert("your account email is verified");
+      setOtp("");
+
+      navigate("/");
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Server error. Please try again.");
+    }
   };
 
   return (
