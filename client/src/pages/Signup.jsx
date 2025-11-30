@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import {useNavigate} from "react-router-dom"
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -7,57 +8,36 @@ function Signup() {
     password: "",
     confirmPassword: "",
   });
-
+  const navigate = useNavigate()
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-
-    try {
-      const res = await fetch("http://localhost:3000/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.message || "Signup failed");
-        return;
-      }
-
-      console.log("Response:", data);
-      console.log("Signup data:", formData);
-
-      alert("Signup successful!");
-
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      });
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Server error. Please try again.");
-    }
+    navigate("/verifyotp")
+    alert("otp sent your email");
+    setFormData({ name: "", email: "", password: "", confirmPassword: "" });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center ">
-      <div className="w-full max-w-md bg-red-50 rounded-2xl shadow-xl p-8">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{
+        background: "linear-gradient(135deg, #837ab6, #f6a5c0)",
+      }}
+    >
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
+        <h2
+          className="text-3xl font-bold text-center mb-6"
+          style={{ color: "#837ab6" }}
+        >
           Create Your Account
         </h2>
 
@@ -72,9 +52,10 @@ function Signup() {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Enter your Name"
               required
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+              style={{ borderColor: "#9d85b6", caretColor: "#837ab6" }}
+              placeholder="Enter your Name"
             />
           </div>
 
@@ -88,9 +69,10 @@ function Signup() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="Enter your email"
               required
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+              style={{ borderColor: "#9d85b6", caretColor: "#837ab6" }}
+              placeholder="Enter your email"
             />
           </div>
 
@@ -104,9 +86,10 @@ function Signup() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Enter your password"
               required
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+              style={{ borderColor: "#cc8db3", caretColor: "#837ab6" }}
+              placeholder="Enter your password"
             />
           </div>
 
@@ -120,25 +103,32 @@ function Signup() {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder="Confirm your password"
               required
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+              style={{ borderColor: "#cc8db3", caretColor: "#837ab6" }}
+              placeholder="Confirm your password"
             />
           </div>
 
           {/* Button */}
           <button
             type="submit"
-            className="w-full py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-300"
+            className="w-full py-2 font-semibold rounded-lg transition duration-300 text-white"
+            style={{
+              background: "linear-gradient(135deg, #9d85b6, #cc8db3)",
+            }}
           >
             Sign Up
           </button>
         </form>
 
         {/* Footer */}
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-sm mt-6 text-gray-500">
           Already have an account?{" "}
-          <span className="text-indigo-600 font-medium cursor-pointer hover:underline">
+          <span
+            className="font-medium cursor-pointer hover:underline"
+            style={{ color: "#837ab6" }}
+          >
             Login
           </span>
         </p>
