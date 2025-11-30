@@ -27,9 +27,9 @@ export const authenticateUser = async (req, res, next) => {
   }
 };
 
-export const authorizeChecker = (req, res, next) => {
-  if (req.user?.role === "owner") return next();
-  res.status(403).json({ message: "Access denied. checker is only allowed" });
+export const authorizeOwner = (req, res, next) => {
+  if (req.user?.role === "owner" && req.user?.owner.isVerified) return next();
+  res.status(403).json({ message: "Access denied. owner is only allowed" });
 };
 
 export const authorizeAdmin = (req, res, next) => {
