@@ -23,7 +23,7 @@ export const authenticateUser = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    res.status(401).json({ message: "internal server error" });
+    return res.status(401).json({ message: "Token expired or invalid" });
   }
 };
 
