@@ -19,7 +19,22 @@ export const getUserById = async (req, res) => {
     res.status(500).json({ message: "server error", error: error.message });
   }
 };
-export const updateUserRole = async (req, res) => {};
+export const verifyOwner = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "user not found" });
+    }
+    if (user.role !== "owner") {
+      return res.status(400).json({ message: "user is not an owner" });
+    }
+    user.owner.isVerified = true;
+    await user.save();
+    res.status(200).json({ message: "owner verified successfully", user });
+  } catch (error) {
+    res.status(500).json({ message: "server error", error: error.message });
+  }
+};
 export const deleteUser = async (req, res) => {
     console.log("inside delete user")
   try {

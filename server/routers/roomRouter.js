@@ -1,5 +1,5 @@
 import express from "express";
-import { addRoom, getAllRoom, getRoom, getRoomById } from "../controllers/roomController.js";
+import { addRoom, getAllRoom, getRoom, getRoomById, verifyRoom } from "../controllers/roomController.js";
 import {
   authenticateUser,
   authorizeAdmin,
@@ -26,5 +26,6 @@ router.post(
 //admin route
 
 router.get("/getAll",authenticateUser,authorizeAdmin,getAllRoom)
+router.put("/verify/:id",authenticateUser,authorizeAdmin,verifyRoom)
 
 export default router;

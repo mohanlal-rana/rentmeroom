@@ -6,7 +6,7 @@ import { success } from "zod";
 export const getRoom = async (req, res) => {
   try {
     const rooms = await Room.find({ isVerified: true });
-    console.log(rooms);
+    // console.log(rooms);
     if (rooms.length == 0) {
       return res
         .status(404)
@@ -143,3 +143,23 @@ export const getAllRoom = async (req, res) => {
     });
   }
 };
+
+export const verifyRoom=async(req,res)=>{
+  try {
+    const id=req.params.id
+    const room=await Room.findById(id)
+    if(!room){
+      return res.status(404).json({success:false,message:"no room is found"})
+    }
+    room.isVerified=true
+    await room.save()
+    res.status(200).json({success:true,message:"room verified successfully"})
+  } catch (error) {
+        console.error("Error verifying room:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error: Unable to verify room",
+      error: error.message,
+    });
+  }
+}
