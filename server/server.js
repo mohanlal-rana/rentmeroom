@@ -5,6 +5,7 @@ import CONNECT_DB from "./utils/db.js";
 import authRouter from "./routers/authRouter.js";
 import userRouter from "./routers/userRouter.js";
 import roomRouter from "./routers/roomRouter.js"
+import interestedRouter from "./routers/interestedRouter.js"
 import errorMiddleware from "./middlewares/errorMiddleware.js";
 
 dotenv.config();
@@ -36,6 +37,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/rooms", roomRouter);
+app.use("/api/interested", interestedRouter);
 
 app.use(errorMiddleware);
 CONNECT_DB().then(() => {
