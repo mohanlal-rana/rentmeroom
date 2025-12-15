@@ -121,6 +121,28 @@ export const addRoom = async (req, res) => {
   }
 };
 
+export const deleteRoom=async(req,res)=>{
+  try {
+    const id=req.params.id
+    const room=await Room.findById(id)
+    if(!room){
+      return res.status(404).json({success:false,message:"no room is found"})
+    }
+    //check ownership
+    if(room.owner.toString()!==req.user._id.toString()){
+      return res.status(403).json({success:false,message:"you are not authorized to delete this room"})
+    }
+    await Room.findByIdAndDelete(id)
+    res.status(200).json({success:true,message:"room deleted successfully"})
+  } catch (error) {
+        console.error("Error deleting room:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error: Unable to delete room",
+      error: error.message,
+    });
+  }
+}
 //admin controller
 
 export const getAllRoom = async (req, res) => {

@@ -1,5 +1,5 @@
 import express from "express";
-import { addRoom, getAllRoom, getRoom, getRoomById, verifyRoom } from "../controllers/roomController.js";
+import { addRoom, deleteRoom, getAllRoom, getRoom, getRoomById, verifyRoom } from "../controllers/roomController.js";
 import {
   authenticateUser,
   authorizeAdmin,
@@ -22,6 +22,7 @@ router.post(
   validate(createRoomSchema),
   addRoom
 );
+router.delete("/delete/:id",authenticateUser,authorizeOwner,deleteRoom)
 
 //admin route
 
