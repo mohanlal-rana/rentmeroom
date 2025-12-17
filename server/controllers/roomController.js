@@ -120,6 +120,70 @@ export const addRoom = async (req, res) => {
     });
   }
 };
+export const updateRoom = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const room = await Room.findById(id);
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Room not found",
+      });
+    }
+
+    // Ownership check
+    if (room.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to update this room",
+      });
+    }
+
+    // Update only provided fields
+    const fields = [
+      "title",
+      "rent",
+      "address",
+      "location",
+      "contact",
+      "features",
+      "description",
+    ];
+
+    fields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        room[field] = req.body[field];
+      }
+    });
+
+    // Handle uploaded images (append or replace)
+    if (req.files && req.files.length > 0) {
+      const images = req.files.map((file) => ({
+        url: `/uploads/${file.filename}`,
+        public_id: file.filename,
+      }));
+
+      // Replace images (or use push if you want to append)
+      room.images = images;
+    }
+
+    await room.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Room updated successfully",
+      room,
+    });
+  } catch (error) {
+    console.error("Error updating room:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error: Unable to update room",
+      error: error.message,
+    });
+  }
+};
 
 export const deleteRoom=async(req,res)=>{
   try {
