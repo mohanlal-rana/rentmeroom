@@ -45,6 +45,95 @@ export const getRoomById=async(req,res)=>{
   }
 }
 
+export const searchRooms = async (req, res) => {
+  try {
+    const {
+      keywords,
+      minRent,
+      maxRent,
+      features,   // comma-separated: "wifi,parking"
+      lat,
+      lng,
+      radius,     // meters
+      page = 1,
+      limit = 20,
+    } = req.query;
+
+    const filter = { isVerified: true };
+
+    // Text search
+    if (keywords) {
+      filter.$or = [
+        { title: { $regex: keywords, $options: "i" } },
+        { description: { $regex: keywords, $options: "i" } },
+        { address: { $regex: keywords, $options: "i" } },
+      ];
+    }
+
+    // Rent filter
+    if (minRent || maxRent) {
+      filter.rent = {};
+      if (minRent) filter.rent.$gte = parseFloat(minRent);
+      if (maxRent) filter.rent.$lte = parseFloat(maxRent);
+    }
+
+    // Features filter
+    if (features) {
+      const featureArray = features.split(",").map(f => f.trim());
+      filter.features = { $all: featureArray };
+    }
+
+    // Nearby search
+    if (lat && lng) {
+      const longitude = parseFloat(lng);
+      const latitude = parseFloat(lat);
+      if (!isNaN(longitude) && !isNaN(latitude)) {
+        filter.location = {
+          $near: {
+            $geometry: { type: "Point", coordinates: [longitude, latitude] },
+            $maxDistance: radius ? parseInt(radius) : 5000, // default 5km
+          },
+        };
+      }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Fetch rooms
+    const rooms = await Room.find(filter)
+      .select("title rent address images location features") // contact always hidden
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const result = rooms.map(r => ({
+      _id: r._id,
+      title: r.title,
+      rent: r.rent,
+      address: r.address,
+      images: r.images,
+      location: r.location,
+      features: r.features,
+      contact: null, // always hidden
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: result.length,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      rooms: result,
+    });
+  } catch (error) {
+    console.error("Error searching rooms:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error: Unable to search rooms",
+    });
+  }
+};
+
+
 //owner controller
 export const addRoom = async (req, res) => {
   try {

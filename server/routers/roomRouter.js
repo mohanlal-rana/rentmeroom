@@ -7,6 +7,7 @@ import {
   getOwnerRoomById,
   getRoom,
   getRoomById,
+  searchRooms,
   updateRoom,
   verifyRoom,
 } from "../controllers/roomController.js";
@@ -23,6 +24,7 @@ const router = express.Router();
 //public route
 router.get("/get", getRoom);
 router.get("/get/:id", getRoomById);
+router.get("/search", searchRooms);
 //owner route
 router.post(
   "/add",
