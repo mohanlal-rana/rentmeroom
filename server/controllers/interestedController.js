@@ -65,7 +65,10 @@ export const getInterestedRooms = async (req, res) => {
       .populate("room", "title price location contact")
       .sort({ createdAt: -1 });
 
-    const result = interests.map((i) => ({
+    // filter out interests where room was deleted
+    const filtered = interests.filter(i => i.room !== null);
+
+    const result = filtered.map(i => ({
       _id: i._id,
       status: i.status,
       message: i.message,
@@ -75,22 +78,20 @@ export const getInterestedRooms = async (req, res) => {
         title: i.room.title,
         price: i.room.price,
         location: i.room.location,
-        // 🔒 show contact only if owner marked as contacted
         contact: i.status === "contacted" ? i.room.contact : null,
       },
     }));
 
-    res.status(200).json({ success: true, interestedRooms: result });
+    res.status(200).json({
+      success: true,
+      interestedRooms: result,
+    });
   } catch (error) {
     console.error("Error fetching interested rooms:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server error: Unable to fetch interested rooms",
-      });
+    res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // Owner marks an interest as contacted
 export const markAsContacted = async (req, res) => {
@@ -138,9 +139,6 @@ export const markAsContacted = async (req, res) => {
       });
   }
 };
-
-import Interested from "../models/interestedMOdel.js";
-import Room from "../models/roomModel.js";
 
 export const getAllInterestsForOwner = async (req, res) => {
   try {
