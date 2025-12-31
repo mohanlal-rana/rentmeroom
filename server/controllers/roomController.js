@@ -5,7 +5,7 @@ import { success } from "zod";
 //public controller
 export const getRoom = async (req, res) => {
   try {
-    const rooms = await Room.find({ isVerified: true });
+    const rooms = await Room.find({ isVerified: true }).select('-contact');;
     // console.log(rooms);
     if (rooms.length == 0) {
       return res
@@ -30,7 +30,7 @@ export const getRoom = async (req, res) => {
 export const getRoomById=async(req,res)=>{
   try {
     const id=req.params.id
-    const room=await Room.findById(id)
+    const room=await Room.findById(id).select('-contact');
     if(!room){
       return res.status(404).json({success:false,message:"no room is found"})
     }
@@ -120,6 +120,41 @@ export const addRoom = async (req, res) => {
     });
   }
 };
+export const getAllOwnerRooms=async(req,res)=>{
+  try {
+    const ownerId=req.user._id
+    const rooms=await Room.find({owner:ownerId})
+    if(rooms.length==0){
+      return res.status(404).json({success:false,message:"no rooms are found"})
+    }
+    res.status(200).json({success:true,message:"rooms fetched successfully",rooms})
+  } catch (error) {
+        console.error("Error fetching owner's rooms:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error: Unable to fetch owner's rooms",
+      error: error.message,
+    });
+  }
+}
+export const getOwnerRoomById=async(req,res)=>{
+  try {
+    const ownerId=req.user._id
+    const id=req.params.id
+    const room=await Room.findOne({_id:id,owner:ownerId})
+    if(!room){
+      return res.status(404).json({success:false,message:"no room is found"})
+    }     
+    res.status(200).json({success:true,message:"room fetched successfully",room})
+  } catch (error) {
+        console.error("Error fetching owner's room:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error: Unable to fetch owner's room",
+      error: error.message,
+    });
+  }
+}
 export const updateRoom = async (req, res) => {
   try {
     const { id } = req.params;
