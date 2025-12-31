@@ -120,41 +120,66 @@ export const addRoom = async (req, res) => {
     });
   }
 };
-export const getAllOwnerRooms=async(req,res)=>{
+export const getAllOwnerRooms = async (req, res) => {
   try {
-    const ownerId=req.user._id
-    const rooms=await Room.find({owner:ownerId})
-    if(rooms.length==0){
-      return res.status(404).json({success:false,message:"no rooms are found"})
+    const ownerId = req.user._id;
+
+    const rooms = await Room.find({ owner: ownerId });
+
+    if (!rooms.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No rooms found",
+      });
     }
-    res.status(200).json({success:true,message:"rooms fetched successfully",rooms})
+
+    res.status(200).json({
+      success: true,
+      message: "Rooms fetched successfully",
+      rooms,
+    });
+
   } catch (error) {
-        console.error("Error fetching owner's rooms:", error);
+    console.error("Error fetching owner's rooms:", error);
     res.status(500).json({
       success: false,
-      message: "Server Error: Unable to fetch owner's rooms",
-      error: error.message,
+      message: "Server error while fetching rooms",
     });
   }
-}
-export const getOwnerRoomById=async(req,res)=>{
+};
+
+export const getOwnerRoomById = async (req, res) => {
   try {
-    const ownerId=req.user._id
-    const id=req.params.id
-    const room=await Room.findOne({_id:id,owner:ownerId})
-    if(!room){
-      return res.status(404).json({success:false,message:"no room is found"})
-    }     
-    res.status(200).json({success:true,message:"room fetched successfully",room})
+    const ownerId = req.user._id;
+    const roomId = req.params.id;
+
+    const room = await Room.findOne({
+      _id: roomId,
+      owner: ownerId,
+    });
+
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Room not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Room fetched successfully",
+      room,
+    });
+
   } catch (error) {
-        console.error("Error fetching owner's room:", error);
+    console.error("Error fetching owner's room:", error);
     res.status(500).json({
       success: false,
-      message: "Server Error: Unable to fetch owner's room",
-      error: error.message,
+      message: "Server error while fetching room",
     });
   }
-}
+};
+
 export const updateRoom = async (req, res) => {
   try {
     const { id } = req.params;
