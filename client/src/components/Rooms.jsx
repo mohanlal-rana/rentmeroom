@@ -100,11 +100,6 @@ export default function Rooms() {
                 </p>
               )}
 
-              {/* Contact */}
-              <p className="text-sm text-gray-700 mt-2">
-                📞 {room.contact}
-              </p>
-
               <button className="mt-4 w-full bg-[#837ab6] text-white py-2 rounded-xl hover:bg-[#9d85b6] transition font-semibold">
                 View Details
               </button>

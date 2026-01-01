@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../store/AuthContext";
 
 function VerifyOtp() {
+  const { storeTokenInLS } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation()
-  const email = location.state?.email
+  const location = useLocation();
+
+  const email = location.state?.email;
   const [otp, setOtp] = useState("");
 
   const handleSubmit = async (e) => {
@@ -21,19 +24,21 @@ function VerifyOtp() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({email,otp}),
+        body: JSON.stringify({ email, otp }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "otp verification failed");
+        alert(data.message || "OTP verification failed");
         return;
       }
 
-      console.log("Response:", data);
+      if (data.token) {
+        storeTokenInLS(data.token);
+      }
 
-      alert("your account email is verified");
+      alert("Your email has been verified successfully!");
       setOtp("");
 
       navigate("/");
