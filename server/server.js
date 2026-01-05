@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import CONNECT_DB from "./utils/db.js";
 import authRouter from "./routers/authRouter.js";
 import userRouter from "./routers/userRouter.js";
@@ -10,6 +11,7 @@ import errorMiddleware from "./middlewares/errorMiddleware.js";
 
 dotenv.config();
 const app = express();
+app.use(cookieParser());
 const PORT = 3000;
 const allowedOrigins = ["http://localhost:5173"];
 

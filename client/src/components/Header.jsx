@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../store/AuthContext";
 
 export default function Header() {
-  const { isLogedIn, LogoutUser } = useAuth();
+  const { isLoggedIn, logoutUser } = useAuth();
 
   return (
     <header className="bg-white shadow-md px-6 py-3 flex justify-between items-center">
@@ -21,7 +21,7 @@ export default function Header() {
           Home
         </Link>
 
-        {!isLogedIn ? (
+        {!isLoggedIn ? (
           <>
             <Link
               to="/signup"
@@ -39,7 +39,7 @@ export default function Header() {
           </>
         ) : (
           <button
-            onClick={LogoutUser}
+            onClick={logoutUser}
             className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-md transition"
           >
             Logout

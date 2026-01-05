@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { useAuth } from "../store/AuthContext";
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -11,7 +10,6 @@ function Login() {
 
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { storeTokenInLS } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,6 +22,7 @@ function Login() {
     try {
       const res = await fetch("http://localhost:3000/api/auth/login", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -35,10 +34,6 @@ function Login() {
       if (!res.ok) {
         alert(data.message || "Login failed");
         return;
-      }
-
-      if (data.token) {
-        storeTokenInLS(data.token);
       }
 
       alert("Login successful!");

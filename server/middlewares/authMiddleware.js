@@ -4,11 +4,7 @@ import User from "../models/userModel.js";
 export const authenticateUser = async (req, res, next) => {
   console.log("Authenticating user...");
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "cannot authenticate user" });
-    }
-    const token = authHeader.split(" ")[1].trim();
+    const token = req.cookies.token;
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
     const userId = decoded.userId || decoded.id;

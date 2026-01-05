@@ -3,75 +3,56 @@ import { AuthContext } from "./AuthContext.jsx";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token"));
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLogedIn, setIsLogedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const API = import.meta.env.VITE_API;
-  const authorizationToken = token ? `Bearer ${token}` : "";
-
-  // Store Token
-  const storeTokenInLS = (serverToken) => {
-    localStorage.setItem("token", serverToken);
-    setToken(serverToken);
-  };
-
-  // Logout
-  const LogoutUser = () => {
-    localStorage.removeItem("token");
-    setToken(null);
-    setUser(null);
-    setIsLogedIn(false);
-  };
 
   const userAuthentication = async () => {
-    if (!token) {
-      setUser(null);
-      setIsLogedIn(false);
-      return;
-    }
-
-    setIsLoading(true);
     try {
       const res = await fetch(`${API}/api/users/me`, {
         method: "GET",
-        headers: {
-          Authorization: authorizationToken,
-        },
+        credentials: "include", 
       });
 
       const data = await res.json();
 
       if (res.ok) {
         setUser(data.user);
-        setIsLogedIn(true);
+        setIsLoggedIn(true);
       } else {
-        // expired or invalid token
-        alert("token authentication failed. Please login again.");
-
-        LogoutUser();
+        setUser(null);
+        setIsLoggedIn(false);
       }
     } catch (err) {
-      console.log("Auth Error:", err);
-      LogoutUser();
+      console.error("Auth error:", err);
+      setUser(null);
+      setIsLoggedIn(false);
     } finally {
       setIsLoading(false);
     }
   };
+  const logoutUser = async () => {
+    await fetch(`${API}/api/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    setUser(null);
+    setIsLoggedIn(false);
+  };
 
   useEffect(() => {
     userAuthentication();
-  }, [token]);
+  }, []);
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        token,
-        isLogedIn,
+        isLoggedIn,
         isLoading,
-        storeTokenInLS,
-        LogoutUser,
+        logoutUser,
       }}
     >
       {children}

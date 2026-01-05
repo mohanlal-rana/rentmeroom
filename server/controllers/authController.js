@@ -51,7 +51,7 @@ export const verifyotp = async (req, res) => {
         .status(400)
         .json({ error: "otp expired.Please sign up again." });
     }
-    
+
     const user = new User({
       name: tempUser.name,
       email: tempUser.email,
@@ -63,9 +63,15 @@ export const verifyotp = async (req, res) => {
 
     const token = await user.generateToken();
 
+    res.cookie("token", token, {
+      httpOnly: true, // JS can't access
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // CSRF protection
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
     res.status(200).json({
       message: "Account is created.",
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -87,9 +93,17 @@ export const login = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid password" });
     }
+
+    const token = await userExists.generateToken();
+
+    res.cookie("token", token, {
+      httpOnly: true, // JS can't access
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // CSRF protection
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
     res.status(200).json({
       message: "login successfull",
-      token: await userExists.generateToken(),
       user: {
         id: userExists._id,
         name: userExists.name,
@@ -100,4 +114,13 @@ export const login = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: "server error" });
   }
+};
+export const logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  res.status(200).json({ message: "Logged out successfully" });
 };
