@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { HiLocationMarker } from "react-icons/hi";
 
 const BASE_URL = "http://localhost:3000";
 
 export default function Rooms() {
   const [rooms, setRooms] = useState([]);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -65,8 +68,17 @@ export default function Rooms() {
               </h2>
 
               {/* Address */}
-              <p className="text-sm text-gray-500 mt-1">
-                {room.address}
+              <p className="text-gray-600 text-sm mt-1 flex items-center gap-1">
+                <HiLocationMarker className="text-[#837ab6] w-5 h-5" />
+                {[
+                  room.address.wardNo ? `Ward ${room.address.wardNo}` : null,
+                  room.address.municipality,
+                  room.address.district,
+                  room.address.province,
+                  room.address.country,
+                ]
+                  .filter(Boolean) // removes undefined/null
+                  .join(", ")}
               </p>
 
               {/* Rent */}
@@ -89,9 +101,7 @@ export default function Rooms() {
               )}
 
               {/* Description */}
-              <p className="text-sm text-gray-600 mt-3">
-                {room.description}
-              </p>
+              <p className="text-sm text-gray-600 mt-3">{room.description}</p>
 
               {/* Verified */}
               {room.isVerified && (
@@ -100,7 +110,10 @@ export default function Rooms() {
                 </p>
               )}
 
-              <button className="mt-4 w-full bg-[#837ab6] text-white py-2 rounded-xl hover:bg-[#9d85b6] transition font-semibold">
+              <button
+                className="mt-4 w-full bg-[#837ab6] text-white py-2 rounded-xl hover:bg-[#9d85b6] transition font-semibold"
+                onClick={() => navigate(`/rooms/${room._id}`)}
+              >
                 View Details
               </button>
             </div>

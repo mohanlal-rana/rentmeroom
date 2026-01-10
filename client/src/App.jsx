@@ -5,6 +5,7 @@ import Signup from './pages/Signup'
 import Header from './components/Header'
 import VerifyOTP from './pages/VerifyOTP'
 import Login from './pages/Login'
+import RoomDetails from './pages/RoomDetails'
 function App() {
 
   return (
@@ -15,6 +16,7 @@ function App() {
       <Route path='/signup' element={<Signup/>}/>
       <Route path='/verifyotp' element={<VerifyOTP/>}/>
       <Route path='/login' element={<Login/>}/>
+      <Route path='/rooms/:id' element={<RoomDetails/>}/>
      </Routes>
      </BrowserRouter>
   )

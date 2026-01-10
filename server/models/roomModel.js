@@ -19,7 +19,16 @@ const roomSchema = new mongoose.Schema(
 
     rent: { type: Number, required: true },
 
-    address: { type: String, required: true },
+    address: {
+      country: { type: String, required: true },          // Nepal
+      province: { type: String },                          // Sudurpashchim
+      district: { type: String, required: true },          // Kailali
+      municipality: { type: String, required: true },     // Dhangadhi
+      wardNo: { type: Number },                             // 3
+      street: { type: String },                             // Main Road
+      houseNo: { type: String },                            // 12B
+      landmark: { type: String },                           // Near hospital (optional)
+    },
 
     // GeoJSON (optional, but useful for map filtering)
     location: {
