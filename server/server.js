@@ -8,6 +8,7 @@ import userRouter from "./routers/userRouter.js";
 import roomRouter from "./routers/roomRouter.js"
 import interestedRouter from "./routers/interestedRouter.js"
 import errorMiddleware from "./middlewares/errorMiddleware.js";
+import path from "path";
 
 dotenv.config();
 const app = express();
@@ -34,7 +35,7 @@ app.use(cors(corsOptions))
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);

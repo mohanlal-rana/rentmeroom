@@ -19,7 +19,12 @@ router.post("/", authenticateUser, markInterested);
 // Owner routes
 
 // Owner: see all interests for their rooms
-router.get("/owner/interests", authenticateUser, authorizeOwner, getAllInterestsForOwner);
+router.get(
+  "/owner/interests",
+  authenticateUser,
+  authorizeOwner,
+  getAllInterestsForOwner
+);
 
 router.put(
   "/owner/interests/:interestId/contacted",

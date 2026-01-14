@@ -110,3 +110,39 @@ export const beOwner = async (req, res) => {
     res.status(500).json({ message: "server error", error: error.message });
   }
 };
+
+
+// 🔒 BLOCK / ACTIVATE USER
+export const toggleUserActive = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // find user
+    const user = await User.findById(id);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // toggle isActive
+    user.isActive = !user.isActive;
+    await user.save();
+
+    // remove password before sending response
+    const userObj = user.toObject();
+    delete userObj.password;
+
+    res.status(200).json({
+      success: true,
+      message: user.isActive ? "User activated" : "User blocked",
+      ...userObj,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};

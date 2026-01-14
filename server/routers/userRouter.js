@@ -4,6 +4,7 @@ import {
   deleteUser,
   getAllUsers,
   getUserById,
+  toggleUserActive,
   verifyOwner,
 } from "../controllers/userController.js";
 import {
@@ -36,6 +37,7 @@ router.put(
 
 // for admin
 router.get("/", authenticateUser, authorizeAdmin, getAllUsers);
+router.put("/toggle-active/:id", authenticateUser, authorizeAdmin, toggleUserActive)
 router.put("/verify/:id", authenticateUser, authorizeAdmin, verifyOwner);
 router.get("/:id", authenticateUser, authorizeAdmin, getUserById);
 router.delete("/:id", authenticateUser, authorizeAdmin, deleteUser);

@@ -76,6 +76,8 @@ export const verifyotp = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
+        isActive: user.isActive,
       },
     });
   } catch (err) {
@@ -108,6 +110,9 @@ export const login = async (req, res) => {
         id: userExists._id,
         name: userExists.name,
         email: userExists.email,
+        role: userExists.role,
+        isActive: userExists.isActive,
+
       },
     });
   } catch (error) {

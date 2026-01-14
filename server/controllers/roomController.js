@@ -289,17 +289,23 @@ export const updateRoom = async (req, res) => {
 
     // 1️⃣ Find the room
     const room = await Room.findById(id);
-    if (!room) return res.status(404).json({ success: false, message: "Room not found" });
+    if (!room)
+      return res
+        .status(404)
+        .json({ success: false, message: "Room not found" });
 
     // 2️⃣ Ownership check
     if (room.owner.toString() !== req.user._id.toString())
-      return res.status(403).json({ success: false, message: "Not authorized" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Not authorized" });
 
     // 3️⃣ Update basic fields
     const basicFields = ["title", "rent", "contact", "features", "description"];
     basicFields.forEach((field) => {
       if (req.body[field] !== undefined) {
-        room[field] = field === "rent" ? Number(req.body[field]) : req.body[field];
+        room[field] =
+          field === "rent" ? Number(req.body[field]) : req.body[field];
       }
     });
 
@@ -323,10 +329,13 @@ export const updateRoom = async (req, res) => {
       room.address = req.body.address;
       try {
         const addressString = buildAddressString(req.body.address);
-        const geoRes = await axios.get("https://nominatim.openstreetmap.org/search", {
-          params: { q: addressString, format: "json", limit: 1 },
-          headers: { "User-Agent": "RoomFinderApp/1.0" },
-        });
+        const geoRes = await axios.get(
+          "https://nominatim.openstreetmap.org/search",
+          {
+            params: { q: addressString, format: "json", limit: 1 },
+            headers: { "User-Agent": "RoomFinderApp/1.0" },
+          }
+        );
 
         const geo = geoRes.data[0];
         if (geo) {
@@ -352,14 +361,20 @@ export const updateRoom = async (req, res) => {
     // 6️⃣ Save
     await room.save();
 
-    res.status(200).json({ success: true, message: "Room updated successfully", room });
+    res
+      .status(200)
+      .json({ success: true, message: "Room updated successfully", room });
   } catch (error) {
     console.error("Error updating room:", error);
-    res.status(500).json({ success: false, message: "Unable to update room", error: error.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Unable to update room",
+        error: error.message,
+      });
   }
 };
-
-
 
 export const deleteRoom = async (req, res) => {
   try {
@@ -394,15 +409,45 @@ export const deleteRoom = async (req, res) => {
 
 export const getAllRoom = async (req, res) => {
   try {
-    const rooms = await Room.find();
-    if (rooms.length == 0) {
+    const rooms = await Room.find().populate("owner", "name email role"); // 👈 only selected fields
+
+    if (rooms.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No rooms found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Room fetched successfully",
+      rooms,
+    });
+  } catch (error) {
+    console.error("Error fetching rooms:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error: Unable to fetch rooms",
+      error: error.message,
+    });
+  }
+};
+export const getAdminRoomById = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const room = await Room.findById(id).populate(
+      "owner",
+      "name email phone createdAt"
+    );
+
+    if (!room) {
       return res
         .status(404)
-        .json({ success: false, message: "no rooms are there" });
+        .json({ success: false, message: "no room is found" });
     }
     res
       .status(200)
-      .json({ success: true, message: "room fetched successfully", rooms });
+      .json({ success: true, message: "room fetched successfully", room });
   } catch (error) {
     console.error("Error fetching rooms:", error);
     res.status(500).json({

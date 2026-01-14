@@ -12,12 +12,18 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await fetch(`${API}/api/users/me`, {
         method: "GET",
-        credentials: "include", 
+        credentials: "include",
       });
 
       const data = await res.json();
 
       if (res.ok) {
+        if (!data.user.isActive) {
+          // If blocked
+          logoutUser();
+          alert("Your account is blocked. Contact admin.");
+          return;
+        }
         setUser(data.user);
         setIsLoggedIn(true);
       } else {
@@ -53,6 +59,7 @@ export const AuthProvider = ({ children }) => {
         isLoggedIn,
         isLoading,
         logoutUser,
+        API,
       }}
     >
       {children}

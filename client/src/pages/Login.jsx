@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useAuth } from "../store/AuthContext";
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ function Login() {
 
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { API } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,7 +22,7 @@ function Login() {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:3000/api/auth/login", {
+      const res = await fetch(`${API}/api/auth/login`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -30,15 +32,26 @@ function Login() {
       });
 
       const data = await res.json();
+      console.log("Login response:", data);
 
       if (!res.ok) {
         alert(data.message || "Login failed");
         return;
       }
 
+      // Check if user is active
+      if (!data.user.isActive) {
+        alert("Your account is blocked. Contact admin.");
+        return; // do not proceed with login
+      }
+
       alert("Login successful!");
       setFormData({ email: "", password: "" });
-      navigate("/");
+
+      // You can call your auth context login method if you have one
+      // loginUser(data.user);
+
+      navigate("/"); // redirect to home
     } catch (error) {
       console.error("Error:", error);
       alert("Server error. Please try again.");

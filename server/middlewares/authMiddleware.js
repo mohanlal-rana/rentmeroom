@@ -16,6 +16,10 @@ export const authenticateUser = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({ message: "user not found" });
     }
+    // ✅ Check if user is active
+    if (user.isActive === false) {
+      return res.status(403).json({ message: "Your account is blocked" });
+    }
     req.user = user;
     next();
   } catch (error) {

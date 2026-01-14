@@ -2,6 +2,7 @@ import express from "express";
 import {
   addRoom,
   deleteRoom,
+  getAdminRoomById,
   getAllOwnerRooms,
   getAllRoom,
   getOwnerRoomById,
@@ -56,6 +57,7 @@ router.delete("/:id", authenticateUser, authorizeOwner, deleteRoom);
 //admin route
 
 router.get("/getAll", authenticateUser, authorizeAdmin, getAllRoom);
+router.get("/getAll/:id", authenticateUser, authorizeAdmin, getAdminRoomById);
 router.put("/verify/:id", authenticateUser, authorizeAdmin, verifyRoom);
 
 export default router;
