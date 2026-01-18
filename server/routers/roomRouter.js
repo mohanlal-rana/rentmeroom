@@ -28,7 +28,7 @@ router.get("/get/:id", getRoomById);
 router.get("/search", searchRooms);
 //owner route
 router.post(
-  "/add",
+  "/",
   authenticateUser,
   authorizeOwner,
   upload.array("images", 5),

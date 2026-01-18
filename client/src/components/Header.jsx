@@ -20,6 +20,14 @@ export default function Header() {
         >
           Home
         </Link>
+        {isLoggedIn && (
+          <Link
+            to="/interested"
+            className="font-medium text-gray-600 hover:text-[#9d85b6] transition"
+          >
+            Interested
+          </Link>
+        )}
 
         {!isLoggedIn ? (
           <>

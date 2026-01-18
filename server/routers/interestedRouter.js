@@ -8,6 +8,7 @@ import {
   markInterested,
   markAsContacted,
   getAllInterestsForOwner,
+  deleteInterest,
 } from "../controllers/interestedController.js";
 
 const router = express.Router();
@@ -25,7 +26,12 @@ router.get(
   authorizeOwner,
   getAllInterestsForOwner
 );
-
+router.delete(
+  "/owner/interests/:interestId",
+  authenticateUser,
+  authorizeOwner,
+  deleteInterest
+);
 router.put(
   "/owner/interests/:interestId/contacted",
   authenticateUser,

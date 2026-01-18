@@ -186,3 +186,51 @@ export const getAllInterestsForOwner = async (req, res) => {
     });
   }
 };
+export const deleteInterest = async (req, res) => {
+  try {
+    const { interestId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(interestId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid interest ID",
+      });
+    }
+
+    const interest = await Interested.findById(interestId).populate(
+      "room",
+      "owner title"
+    );
+
+    if (!interest) {
+      return res.status(404).json({
+        success: false,
+        message: "Interest not found",
+      });
+    }
+
+    // 🔐 Only room owner can delete
+    if (interest.room.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    // ✅ FIXED HERE
+    await Interested.findByIdAndDelete(interestId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Interest deleted successfully",
+    });
+
+  } catch (error) {
+    console.error("Error deleting interest:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error: Unable to delete interest",
+    });
+  }
+};
