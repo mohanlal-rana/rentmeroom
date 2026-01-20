@@ -19,6 +19,7 @@ import AddRoom from './pages/owner/AddRoom'
 import OwnerRoomDetail from './pages/owner/OwnerRoomDetail'
 import Interested from './pages/owner/Interested'
 import InterestedRoom from './pages/InterestedRoom'
+import EditRoom from './pages/owner/EditRoom'
 function App() {
 
   return (
@@ -49,6 +50,7 @@ function App() {
         <Route path='rooms' element={<OwnerRoomManagement/>}/>
         <Route path='rooms/add' element={<AddRoom/>}/>
         <Route path='rooms/:id' element={<OwnerRoomDetail/>}/>
+        <Route path='rooms/edit/:id' element={<EditRoom/>}/>
         <Route path='interested' element={<Interested/>}/>
       </Route>
 

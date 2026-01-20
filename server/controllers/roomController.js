@@ -146,7 +146,10 @@ export const addRoom = async (req, res) => {
     const { title, rent, address, location, contact, features, description } =
       req.body;
 
-    // Handle uploaded images
+    // 1️⃣ Assign roomLocation from parsed FormData
+    let roomLocation = location;
+
+    // 2️⃣ Handle uploaded images
     const images = req.files
       ? req.files.map((file) => ({
           url: `/uploads/${file.filename}`,
@@ -154,9 +157,7 @@ export const addRoom = async (req, res) => {
         }))
       : [];
 
-    let roomLocation = location;
-
-    // Only try geocoding if location is missing
+    // 3️⃣ Only try geocoding if location is missing or invalid
     if (
       !roomLocation ||
       !roomLocation.coordinates ||
@@ -173,9 +174,9 @@ export const addRoom = async (req, res) => {
               limit: 1,
             },
             headers: {
-              "User-Agent": "RoomFinderApp/1.0", // REQUIRED by Nominatim
+              "User-Agent": "RoomFinderApp/1.0",
             },
-          }
+          },
         );
 
         const geo = geoRes.data[0];
@@ -186,17 +187,18 @@ export const addRoom = async (req, res) => {
             coordinates: [parseFloat(geo.lon), parseFloat(geo.lat)],
           };
         } else {
-          roomLocation = null; // set null if geocoding fails
+          roomLocation = null; // geocoding failed
         }
       } catch (geoError) {
         console.warn(
           "Geocoding failed, setting location as null",
-          geoError.message
+          geoError.message,
         );
         roomLocation = null;
       }
     }
 
+    // 4️⃣ Save Room
     const newRoom = new Room({
       title,
       owner: req.user._id,
@@ -225,6 +227,7 @@ export const addRoom = async (req, res) => {
     });
   }
 };
+
 export const getAllOwnerRooms = async (req, res) => {
   try {
     const ownerId = req.user._id;
@@ -286,93 +289,60 @@ export const getOwnerRoomById = async (req, res) => {
 export const updateRoom = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // 1️⃣ Find the room
     const room = await Room.findById(id);
+
     if (!room)
       return res
         .status(404)
         .json({ success: false, message: "Room not found" });
-
-    // 2️⃣ Ownership check
-    if (room.owner.toString() !== req.user._id.toString())
+    if (room.owner.toString() !== req.user._id.toString()) {
       return res
         .status(403)
         .json({ success: false, message: "Not authorized" });
-
-    // 3️⃣ Update basic fields
-    const basicFields = ["title", "rent", "contact", "features", "description"];
-    basicFields.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        room[field] =
-          field === "rent" ? Number(req.body[field]) : req.body[field];
-      }
-    });
-
-    // 4️⃣ Update location/address
-    const hasNewAddress = req.body.address !== undefined;
-    const hasCoords =
-      req.body.location &&
-      Array.isArray(req.body.location.coordinates) &&
-      req.body.location.coordinates.length === 2 &&
-      !isNaN(req.body.location.coordinates[0]) &&
-      !isNaN(req.body.location.coordinates[1]);
-
-    if (hasCoords) {
-      // ✅ Use provided coordinates directly
-      room.location = req.body.location;
-      if (hasNewAddress) {
-        room.address = req.body.address; // still update address if user provided it
-      }
-    } else if (hasNewAddress) {
-      // 🔄 Only geocode if new address provided and no coords sent
-      room.address = req.body.address;
-      try {
-        const addressString = buildAddressString(req.body.address);
-        const geoRes = await axios.get(
-          "https://nominatim.openstreetmap.org/search",
-          {
-            params: { q: addressString, format: "json", limit: 1 },
-            headers: { "User-Agent": "RoomFinderApp/1.0" },
-          }
-        );
-
-        const geo = geoRes.data[0];
-        if (geo) {
-          room.location = {
-            type: "Point",
-            coordinates: [parseFloat(geo.lon), parseFloat(geo.lat)],
-          };
-        }
-      } catch (err) {
-        console.warn("Geocoding failed:", err.message);
-      }
     }
-    // else: no address or coordinates updated → keep old location
 
-    // 5️⃣ Handle uploaded images
+    // ================= Update Fields =================
+    room.title = req.body.title || room.title;
+    room.rent = req.body.rent ? Number(req.body.rent) : room.rent;
+    room.contact = req.body.contact || room.contact;
+    room.description = req.body.description || room.description;
+    room.features = req.body.features || room.features;
+    room.address = req.body.address || room.address;
+
+    // ================= Update Location =================
+    if (req.body.location && req.body.location.coordinates) {
+      room.location = req.body.location;
+    }
+
+    // ================= Update Images =================
+    let updatedImages = [];
+
+    // Take existing images sent from frontend
+    if (req.body.existingImages && Array.isArray(req.body.existingImages)) {
+      updatedImages = [...req.body.existingImages]; // <-- just take them
+    }
+
+    // Add new uploaded images
     if (req.files && req.files.length > 0) {
-      room.images = req.files.map((file) => ({
+      const newImages = req.files.map((file) => ({
         url: `/uploads/${file.filename}`,
         public_id: file.filename,
       }));
+      updatedImages = [...updatedImages, ...newImages];
     }
 
-    // 6️⃣ Save
+    room.images = updatedImages;
+
     await room.save();
 
-    res
-      .status(200)
-      .json({ success: true, message: "Room updated successfully", room });
+    res.status(200).json({
+      success: true,
+      message: "Room updated successfully",
+      room,
+    });
   } catch (error) {
-    console.error("Error updating room:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unable to update room",
-        error: error.message,
-      });
+    console.error("Update Error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -437,7 +407,7 @@ export const getAdminRoomById = async (req, res) => {
     const id = req.params.id;
     const room = await Room.findById(id).populate(
       "owner",
-      "name email phone createdAt"
+      "name email phone createdAt",
     );
 
     if (!room) {

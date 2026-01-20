@@ -20,6 +20,7 @@ import {
 import upload from "../middlewares/uploadMiddleware.js";
 import { createRoomSchema } from "../validators/roomValidator.js";
 import validate from "../middlewares/validateMiddleware.js";
+import { parseFormData } from "../middlewares/parseFormData.js";
 
 const router = express.Router();
 //public route
@@ -32,6 +33,7 @@ router.post(
   authenticateUser,
   authorizeOwner,
   upload.array("images", 5),
+  parseFormData,
   validate(createRoomSchema),
   addRoom
 );
@@ -49,6 +51,7 @@ router.put(
   authenticateUser,
   authorizeOwner,
   upload.array("images", 5),
+  parseFormData,
   validate(createRoomSchema),
   updateRoom
 );

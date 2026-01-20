@@ -14,7 +14,7 @@ export const createRoomSchema = z.object({
     municipality: z.string().min(2, "Municipality is required"),
     wardNo: z.coerce
       .number({ invalid_type_error: "Ward number must be a number" })
-      .min(2, "Ward number must be at least 1"),
+      .min(1, "Ward number must be at least 1"),
     street: z.string().optional(),
     houseNo: z.string().optional(),
     landmark: z.string().optional(),
@@ -29,15 +29,7 @@ export const createRoomSchema = z.object({
 
   features: z.array(z.string()).optional().default([]),
 
-  images: z
-    .array(
-      z.object({
-        url: z.string(), // allow relative paths
-        public_id: z.string().optional(),
-      })
-    )
-    .optional()
-    .default([]),
+images: z.any().optional(),
 
   location: z
     .object({
