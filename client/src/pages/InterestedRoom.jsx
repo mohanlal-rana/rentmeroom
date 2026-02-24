@@ -40,8 +40,7 @@ export default function InterestedRoom() {
 
   if (loading) return <div className="p-6">Loading...</div>;
 
-  if (error)
-    return <div className="p-6 text-red-600">Error: {error}</div>;
+  if (error) return <div className="p-6 text-red-600">Error: {error}</div>;
 
   return (
     <div className="min-h-screen bg-[#f6f4fa] p-6">
@@ -83,15 +82,21 @@ export default function InterestedRoom() {
               </div>
 
               {/* Status */}
-              <div>
+              <div className="space-y-2">
                 {isContacted ? (
                   <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
                     Owner Contacted ✓
                   </span>
                 ) : (
-                  <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
-                    Pending
-                  </span>
+                  <>
+                    <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+                      Pending
+                    </span>
+
+                    <p className="text-sm text-blue-600 font-medium">
+                      Position in Queue: {i.queuePosition}
+                    </p>
+                  </>
                 )}
               </div>
 

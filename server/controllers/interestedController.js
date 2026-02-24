@@ -60,22 +60,36 @@ export const getInterestedRooms = async (req, res) => {
       .populate("room", "title price location contact")
       .sort({ createdAt: -1 });
 
-    // filter out interests where room was deleted
     const filtered = interests.filter((i) => i.room !== null);
 
-    const result = filtered.map((i) => ({
-      _id: i._id,
-      status: i.status,
-      message: i.message,
-      createdAt: i.createdAt,
-      room: {
-        _id: i.room._id,
-        title: i.room.title,
-        price: i.room.price,
-        location: i.room.location,
-        contact: i.status === "contacted" ? i.room.contact : null,
-      },
-    }));
+    const result = [];
+
+    for (const i of filtered) {
+      // 🔥 Get all interests for this room sorted by time (oldest first)
+      const roomQueue = await Interested.find({ room: i.room._id })
+        .sort({ createdAt: 1 });
+
+      // 🔥 Find position in queue
+      const position =
+        roomQueue.findIndex(
+          (r) => r._id.toString() === i._id.toString()
+        ) + 1;
+
+      result.push({
+        _id: i._id,
+        status: i.status,
+        message: i.message,
+        createdAt: i.createdAt,
+        queuePosition: position, // ✅ ADD THIS
+        room: {
+          _id: i.room._id,
+          title: i.room.title,
+          price: i.room.price,
+          location: i.room.location,
+          contact: i.status === "contacted" ? i.room.contact : null,
+        },
+      });
+    }
 
     res.status(200).json({
       success: true,
