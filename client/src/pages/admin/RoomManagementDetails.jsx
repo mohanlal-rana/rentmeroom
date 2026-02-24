@@ -48,7 +48,30 @@ export default function RoomManagementDetails() {
         {error}
       </div>
     );
+  const handleVerify = async () => {
+    try {
+      const res = await fetch(`${API}/api/rooms/verify/${id}`, {
+        method: "PUT", // ✅ MUST MATCH ROUTE
+        credentials: "include",
+      });
 
+      if (!res.ok) {
+        const text = await res.text();
+        console.log(text); // helpful debug
+        throw new Error("Verification failed");
+      }
+
+      const data = await res.json();
+
+      if (!data.success) throw new Error(data.message);
+
+      setRoom(data.room);
+      alert("Room verified successfully ✅");
+      navigate("/admin/rooms");
+    } catch (err) {
+      alert(err.message);
+    }
+  };
   // Address is a string in your API response
   const formattedAddress =
     typeof room.address === "string" ? room.address : "N/A";
@@ -83,15 +106,24 @@ export default function RoomManagementDetails() {
             <p className="text-xl font-bold text-[#9d85b6] mt-3">
               Rs. {room.rent} / month
             </p>
+            <div className="mt-2">
+              <p
+                className={`font-semibold ${
+                  room.isVerified ? "text-green-600" : "text-red-500"
+                }`}
+              >
+                {room.isVerified ? "✔ Verified" : "✖ Not Verified"}
+              </p>
 
-            <p
-              className={`mt-2 font-semibold ${
-                room.isVerified ? "text-green-600" : "text-red-500"
-              }`}
-            >
-              {room.isVerified ? "✔ Verified" : "✖ Not Verified"}
-            </p>
-
+              {!room.isVerified && (
+                <button
+                  onClick={handleVerify}
+                  className="mt-2 bg-green-600 text-white px-4 py-1 rounded-lg hover:bg-green-700 transition"
+                >
+                  Verify Room
+                </button>
+              )}
+            </div>
             <p className="text-xs text-gray-400 mt-1">
               Created on: {new Date(room.createdAt).toLocaleDateString()}
             </p>

@@ -11,7 +11,7 @@ function Login() {
 
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { API } = useAuth();
+  const { API, loginUser } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,7 +44,7 @@ function Login() {
         alert("Your account is blocked. Contact admin.");
         return; // do not proceed with login
       }
-
+      loginUser(data.user);
       alert("Login successful!");
       setFormData({ email: "", password: "" });
 

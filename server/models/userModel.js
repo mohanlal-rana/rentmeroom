@@ -28,10 +28,12 @@ const UserSchema = new mongoose.Schema(
       enum: ["user", "owner", "admin"],
       default: "user",
     },
-    saved: {
-      type: Array,
-      default: [],
-    },
+    saved: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Room",
+      },
+    ],
 
     // Owner-specific fields (filled when upgrading)
     owner: {
@@ -69,7 +71,7 @@ const UserSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 UserSchema.pre("save", async function (next) {
@@ -95,7 +97,7 @@ UserSchema.methods.generateToken = function () {
       role: this.role,
     },
     process.env.JWT_SECRET_KEY,
-    { expiresIn: "7d" }
+    { expiresIn: "7d" },
   );
 };
 

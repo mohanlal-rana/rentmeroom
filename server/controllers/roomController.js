@@ -1,6 +1,8 @@
 import axios from "axios";
 import Room from "../models/roomModel.js";
 import buildAddressString from "../utils/buildAddressString.js";
+import mongoose from "mongoose";
+import User from "../models/userModel.js";
 
 //public controller
 export const getRoom = async (req, res) => {
@@ -139,7 +141,64 @@ export const searchRooms = async (req, res) => {
     });
   }
 };
+//user controller
+export const saveRoom = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const roomId = req.params.id;
 
+    await User.findByIdAndUpdate(
+      userId,
+      { $addToSet: { saved: roomId } }, // 🔥 auto prevent duplicates
+      { new: true },
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Room saved successfully",
+    });
+  } catch (error) {
+    console.log("SAVE ERROR:", error);
+    res.status(500).json({
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+export const unsaveRoom = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const roomId = req.params.id;
+
+    const user = await User.findById(userId);
+
+    user.saved = user.saved.filter((id) => id.toString() !== roomId.toString());
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Room unsaved successfully",
+      saved: user.saved,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+export const getSavedRooms = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const user = await User.findById(userId).populate("saved");
+
+    res.status(200).json({
+      success: true,
+      savedRooms: user.saved,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
 //owner controller
 export const addRoom = async (req, res) => {
   try {

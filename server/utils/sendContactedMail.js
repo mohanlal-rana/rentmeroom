@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const sendotp = async function (email, otp) {
+const sendContactedMail = async (email, roomTitle) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -8,11 +8,13 @@ const sendotp = async function (email, otp) {
       pass: process.env.EMAIL_PASS,
     },
   });
+
   await transporter.sendMail({
     from: `"RentMeRoom" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: "verify your email",
-    text: `Your OTP is ${otp}. It will expire in 5 minutes.`,
+    subject: "Owner Contacted You",
+    text: `Good news! Owner contacted you about room: ${roomTitle} go and check your account for more details.`,
   });
 };
-export default sendotp;
+
+export default sendContactedMail;

@@ -20,6 +20,9 @@ import OwnerRoomDetail from './pages/owner/OwnerRoomDetail'
 import Interested from './pages/owner/Interested'
 import InterestedRoom from './pages/InterestedRoom'
 import EditRoom from './pages/owner/EditRoom'
+import SearchRooms from './components/SearchRooms'
+import Footer from './components/Footer'
+import SavedRooms from './pages/SavedRooms'
 function App() {
 
   return (
@@ -32,6 +35,10 @@ function App() {
       <Route path='/login' element={<Login/>}/>
       <Route path='/rooms/:id' element={<RoomDetails/>}/>
       <Route path='/interested' element={<InterestedRoom/>}/>
+      <Route path="/search" element={<SearchRooms />} />
+
+      // user Routes
+      <Route path='/saved-rooms' element={<SavedRooms/>}/>
 
       // admin Routes
       <Route path='/admin' element={<AdminLayout/>}> 
@@ -55,6 +62,7 @@ function App() {
       </Route>
 
      </Routes>
+     <Footer/>
      </BrowserRouter>
   )
 }

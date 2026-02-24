@@ -47,7 +47,10 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsLoggedIn(false);
   };
-
+  const loginUser = (userData) => {
+    setUser(userData);
+    setIsLoggedIn(true);
+  };
   useEffect(() => {
     userAuthentication();
   }, []);
@@ -56,6 +59,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        loginUser,
         isLoggedIn,
         isLoading,
         logoutUser,

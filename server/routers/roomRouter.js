@@ -8,7 +8,10 @@ import {
   getOwnerRoomById,
   getRoom,
   getRoomById,
+  getSavedRooms,
+  saveRoom,
   searchRooms,
+  unsaveRoom,
   updateRoom,
   verifyRoom,
 } from "../controllers/roomController.js";
@@ -27,6 +30,10 @@ const router = express.Router();
 router.get("/get", getRoom);
 router.get("/get/:id", getRoomById);
 router.get("/search", searchRooms);
+//user route
+router.put("/save/:id", authenticateUser, saveRoom);
+router.put("/unsave/:id", authenticateUser, unsaveRoom);  
+router.get("/saved", authenticateUser, getSavedRooms);
 //owner route
 router.post(
   "/",

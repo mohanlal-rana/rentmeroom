@@ -1,6 +1,7 @@
 import Interested from "../models/interestedMOdel.js";
 import Room from "../models/roomModel.js";
 import mongoose from "mongoose";
+import sendContactedMail from "../utils/sendContactedMail.js";
 
 // User marks interest
 export const markInterested = async (req, res) => {
@@ -25,12 +26,10 @@ export const markInterested = async (req, res) => {
       room: roomId,
     });
     if (alreadyInterested) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "You have already marked interest for this room",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "You have already marked interest for this room",
+      });
     }
 
     const interested = new Interested({
@@ -40,21 +39,17 @@ export const markInterested = async (req, res) => {
     });
     await interested.save();
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Interest marked successfully",
-        interested,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Interest marked successfully",
+      interested,
+    });
   } catch (error) {
     console.error("Error marking interest:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server error: Unable to mark interest",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Server error: Unable to mark interest",
+    });
   }
 };
 
@@ -66,9 +61,9 @@ export const getInterestedRooms = async (req, res) => {
       .sort({ createdAt: -1 });
 
     // filter out interests where room was deleted
-    const filtered = interests.filter(i => i.room !== null);
+    const filtered = interests.filter((i) => i.room !== null);
 
-    const result = filtered.map(i => ({
+    const result = filtered.map((i) => ({
       _id: i._id,
       status: i.status,
       message: i.message,
@@ -92,8 +87,8 @@ export const getInterestedRooms = async (req, res) => {
   }
 };
 
-
 // Owner marks an interest as contacted
+
 export const markAsContacted = async (req, res) => {
   try {
     const { interestId } = req.params;
@@ -104,17 +99,16 @@ export const markAsContacted = async (req, res) => {
         .json({ success: false, message: "Invalid interest ID" });
     }
 
-    const interest = await Interested.findById(interestId).populate(
-      "room",
-      "owner title"
-    );
+    const interest = await Interested.findById(interestId)
+      .populate("room", "owner title")
+      .populate("user", "email name"); // 👈 VERY IMPORTANT
+
     if (!interest) {
       return res
         .status(404)
         .json({ success: false, message: "Interest not found" });
     }
 
-    // Only room owner can mark as contacted
     if (interest.room.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
@@ -122,21 +116,20 @@ export const markAsContacted = async (req, res) => {
     interest.status = "contacted";
     await interest.save();
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Interest marked as contacted",
-        interest,
-      });
+    // ✅ Send email to interested user
+    await sendContactedMail(interest.user.email, interest.room.title);
+
+    res.status(200).json({
+      success: true,
+      message: "Interest marked as contacted",
+      interest,
+    });
   } catch (error) {
     console.error("Error marking interest as contacted:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server error: Unable to update interest",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Server error: Unable to update interest",
+    });
   }
 };
 
@@ -155,9 +148,9 @@ export const getAllInterestsForOwner = async (req, res) => {
       .sort({ createdAt: -1 });
 
     // Filter out interests where room is null (not owned by this owner)
-    const filtered = interests.filter(i => i.room !== null);
+    const filtered = interests.filter((i) => i.room !== null);
 
-    const result = filtered.map(i => ({
+    const result = filtered.map((i) => ({
       _id: i._id,
       status: i.status,
       message: i.message,
@@ -177,7 +170,6 @@ export const getAllInterestsForOwner = async (req, res) => {
       message: "Owner interests fetched successfully",
       interests: result,
     });
-
   } catch (error) {
     console.error("Error fetching owner interests:", error);
     res.status(500).json({
@@ -199,7 +191,7 @@ export const deleteInterest = async (req, res) => {
 
     const interest = await Interested.findById(interestId).populate(
       "room",
-      "owner title"
+      "owner title",
     );
 
     if (!interest) {
@@ -224,7 +216,6 @@ export const deleteInterest = async (req, res) => {
       success: true,
       message: "Interest deleted successfully",
     });
-
   } catch (error) {
     console.error("Error deleting interest:", error);
 
