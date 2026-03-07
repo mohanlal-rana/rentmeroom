@@ -9,6 +9,7 @@ import roomRouter from "./routers/roomRouter.js"
 import interestedRouter from "./routers/interestedRouter.js"
 import errorMiddleware from "./middlewares/errorMiddleware.js";
 import path from "path";
+import adminRoutes from "./routers/adminRouter.js";
 
 dotenv.config();
 const app = express();
@@ -41,6 +42,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/rooms", roomRouter);
 app.use("/api/interested", interestedRouter);
+app.use("/api/admin", adminRoutes);
 
 app.use(errorMiddleware);
 CONNECT_DB().then(() => {

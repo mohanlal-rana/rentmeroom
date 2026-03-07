@@ -7,6 +7,8 @@ function RoomManagement() {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all"); // ✅ NEW
+
   const { API } = useAuth();
   const navigate = useNavigate();
 
@@ -33,6 +35,14 @@ function RoomManagement() {
     fetchRooms();
   }, [API]);
 
+  // ✅ FILTER LOGIC
+  const filteredRooms = rooms.filter((room) => {
+    if (statusFilter === "all") return true;
+    if (statusFilter === "verified") return room.isVerified;
+    if (statusFilter === "unverified") return !room.isVerified;
+    return true;
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-[#837ab6] text-xl">
@@ -51,11 +61,23 @@ function RoomManagement() {
 
   return (
     <div className="min-h-screen bg-[#f6f4fa] px-6 py-10">
-      <h1 className="text-3xl font-bold text-center text-[#837ab6] mb-8">
-        Room Management
-      </h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-[#837ab6]">
+          Room Management
+        </h1>
 
-      {/* Table wrapper for horizontal scroll */}
+        {/* ✅ FILTER DROPDOWN */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-2 rounded-xl border shadow-sm"
+        >
+          <option value="all">All Rooms</option>
+          <option value="verified">Verified</option>
+          <option value="unverified">Unverified</option>
+        </select>
+      </div>
+
       <div className="overflow-x-auto bg-white rounded-2xl shadow-lg">
         <table className="min-w-full border-collapse">
           <thead>
@@ -70,14 +92,22 @@ function RoomManagement() {
           </thead>
 
           <tbody>
-            {rooms.map((room, index) => (
+            {filteredRooms.length === 0 && (
+              <tr>
+                <td colSpan="6" className="text-center py-6 text-gray-500">
+                  No rooms found
+                </td>
+              </tr>
+            )}
+
+            {filteredRooms.map((room, index) => (
               <tr
                 key={room._id}
                 className={`border-t hover:bg-[#f6f4fa] transition ${
                   index % 2 === 0 ? "bg-white" : "bg-[#faf9fe]"
                 }`}
               >
-                {/* Title + Image */}
+                {/* Room Info */}
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-4">
                     <img
@@ -131,7 +161,7 @@ function RoomManagement() {
                         : "bg-red-100 text-red-600"
                     }`}
                   >
-                    {room.isVerified ? "Verified" : "Not Verified"}
+                    {room.isVerified ? "Verified" : "Unverified"}
                   </span>
                 </td>
 
@@ -143,7 +173,9 @@ function RoomManagement() {
                 {/* Action */}
                 <td className="px-6 py-4 text-center">
                   <button
-                    onClick={() => navigate(`/admin/rooms/${room._id}`)}
+                    onClick={() =>
+                      navigate(`/admin/rooms/${room._id}`)
+                    }
                     className="bg-[#837ab6] text-white px-4 py-2 rounded-lg hover:bg-[#9d85b6] transition text-sm font-semibold"
                   >
                     View
