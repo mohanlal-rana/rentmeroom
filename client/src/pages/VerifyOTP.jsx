@@ -51,9 +51,6 @@ function VerifyOtp() {
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4"
-      style={{
-        background: "linear-gradient(135deg, #837ab6, #f6a5c0)",
-      }}
     >
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-8">
         <h2
