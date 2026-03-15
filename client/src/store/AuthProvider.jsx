@@ -38,14 +38,14 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(false);
     }
   };
-  const logoutUser = async () => {
+  const logoutUser = async (onNavigate) => {
     await fetch(`${API}/api/auth/logout`, {
       method: "POST",
       credentials: "include",
     });
-
     setUser(null);
     setIsLoggedIn(false);
+    if (onNavigate) onNavigate("/");
   };
   const loginUser = (userData) => {
     setUser(userData);

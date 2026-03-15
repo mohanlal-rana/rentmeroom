@@ -105,7 +105,7 @@ export default function Header() {
               Saved-Rooms
             </Link>
             <button
-              onClick={logoutUser}
+              onClick={() => logoutUser(navigate)}
               className="px-4 py-1.5 rounded-md font-semibold bg-[#cc8db3] hover:bg-[#9d85b6] text-white transition"
             >
               Logout

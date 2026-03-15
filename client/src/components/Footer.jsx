@@ -36,10 +36,6 @@ export default function Footer() {
             <Link to="/search" className="hover:text-white transition">
               Search
             </Link>
-
-            <Link to="/contact" className="hover:text-white transition">
-              Contact
-            </Link>
           </div>
         </div>
 
