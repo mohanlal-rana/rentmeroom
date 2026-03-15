@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { HiLocationMarker, HiOutlineCash, HiCheckCircle, HiHeart } from "react-icons/hi";
-import { MdOutlineBedroomParent, MdOutlineBathroom, MdKitchen } from "react-icons/md";
+import {
+  HiLocationMarker,
+  HiOutlineCash,
+  HiCheckCircle,
+  HiHeart,
+} from "react-icons/hi";
+import {
+  MdOutlineBedroomParent,
+  MdOutlineBathroom,
+  MdKitchen,
+} from "react-icons/md";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-
-const BASE_URL = "http://localhost:3000";
+import { useAuth } from "../store/AuthContext.jsx";
 
 // Fix Leaflet icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
@@ -22,9 +31,10 @@ export default function RoomDetails() {
   const [interested, setInterested] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
+  const { API } = useAuth();
 
   useEffect(() => {
-    fetch(`${BASE_URL}/api/rooms/get/${id}`)
+    fetch(`${API}/api/rooms/get/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setRoom(data.room);
@@ -40,7 +50,7 @@ export default function RoomDetails() {
   const handleMarkInterested = async () => {
     setButtonLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/api/interested/`, {
+      const res = await fetch(`${API}/api/interested/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -88,7 +98,9 @@ export default function RoomDetails() {
           {/* Main Image */}
           <img
             src={
-              selectedImage ? `${BASE_URL}${selectedImage}` : "https://via.placeholder.com/800x400?text=No+Image"
+              selectedImage
+                ? `${API}${selectedImage}`
+                : "https://via.placeholder.com/800x400?text=No+Image"
             }
             alt={room.title}
             className="w-full h-80 sm:h-96 md:h-[28rem] object-cover rounded-xl transition-all duration-300"
@@ -100,10 +112,12 @@ export default function RoomDetails() {
               {room.images.map((img, idx) => (
                 <img
                   key={idx}
-                  src={`${BASE_URL}${img.url}`}
+                  src={`${API}${img.url}`}
                   alt={`Thumbnail ${idx + 1}`}
                   className={`w-20 h-20 object-cover rounded-lg cursor-pointer border-2 transition ${
-                    selectedImage === img.url ? "border-[#837ab6]" : "border-gray-200"
+                    selectedImage === img.url
+                      ? "border-[#837ab6]"
+                      : "border-gray-200"
                   }`}
                   onMouseEnter={() => setSelectedImage(img.url)} // hover
                   onClick={() => setSelectedImage(img.url)} // click
@@ -179,17 +193,22 @@ export default function RoomDetails() {
             {interested
               ? "Marked Interested"
               : buttonLoading
-              ? "Loading..."
-              : "Mark Interested"}
+                ? "Loading..."
+                : "Mark Interested"}
           </button>
         </div>
 
         {/* Right Side: Map */}
         <div className="flex-1 rounded-xl overflow-hidden h-[400px] sm:h-[1000px] md:h-[600px] lg:h-auto">
-          <MapContainer center={coordinates} zoom={16} scrollWheelZoom={false} className="h-full w-full">
+          <MapContainer
+            center={coordinates}
+            zoom={16}
+            scrollWheelZoom={false}
+            className="h-full w-full"
+          >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; OpenStreetMap contributors'
+              attribution="&copy; OpenStreetMap contributors"
             />
             <Marker position={coordinates}>
               <Popup>{room.title}</Popup>
