@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { HiLocationMarker, HiOutlineCash, HiCheckCircle, HiHeart } from "react-icons/hi";
-import {
-  MdOutlineBedroomParent,
-  MdOutlineBathroom,
-  MdKitchen,
-} from "react-icons/md";
+import { MdOutlineBedroomParent, MdOutlineBathroom, MdKitchen } from "react-icons/md";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 
@@ -25,12 +21,14 @@ export default function RoomDetails() {
   const [loading, setLoading] = useState(true);
   const [interested, setInterested] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState("");
 
   useEffect(() => {
     fetch(`${BASE_URL}/api/rooms/get/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setRoom(data.room);
+        setSelectedImage(data.room.images?.[0]?.url || "");
         setLoading(false);
       })
       .catch((err) => {
@@ -85,17 +83,34 @@ export default function RoomDetails() {
   return (
     <div className="min-h-screen bg-[#f6f4fa] p-4 sm:p-6 flex justify-center">
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col lg:flex-row gap-6">
-        {/* Left Side: Image + Details */}
+        {/* Left Side */}
         <div className="flex-1 p-6 flex flex-col gap-4">
+          {/* Main Image */}
           <img
             src={
-              room.images?.[0]?.url
-                ? `${BASE_URL}${room.images[0].url}`
-                : "https://via.placeholder.com/800x400?text=No+Image"
+              selectedImage ? `${BASE_URL}${selectedImage}` : "https://via.placeholder.com/800x400?text=No+Image"
             }
             alt={room.title}
-            className="w-full h-80 sm:h-96 md:h-[28rem] object-cover rounded-xl"
+            className="w-full h-80 sm:h-96 md:h-[28rem] object-cover rounded-xl transition-all duration-300"
           />
+
+          {/* Thumbnails */}
+          {room.images?.length > 1 && (
+            <div className="flex gap-2 mt-2 overflow-x-auto">
+              {room.images.map((img, idx) => (
+                <img
+                  key={idx}
+                  src={`${BASE_URL}${img.url}`}
+                  alt={`Thumbnail ${idx + 1}`}
+                  className={`w-20 h-20 object-cover rounded-lg cursor-pointer border-2 transition ${
+                    selectedImage === img.url ? "border-[#837ab6]" : "border-gray-200"
+                  }`}
+                  onMouseEnter={() => setSelectedImage(img.url)} // hover
+                  onClick={() => setSelectedImage(img.url)} // click
+                />
+              ))}
+            </div>
+          )}
 
           <h1 className="text-3xl font-bold text-[#837ab6]">{room.title}</h1>
 
@@ -171,12 +186,7 @@ export default function RoomDetails() {
 
         {/* Right Side: Map */}
         <div className="flex-1 rounded-xl overflow-hidden h-[400px] sm:h-[1000px] md:h-[600px] lg:h-auto">
-          <MapContainer
-            center={coordinates}
-            zoom={16}
-            scrollWheelZoom={false}
-            className="h-full w-full"
-          >
+          <MapContainer center={coordinates} zoom={16} scrollWheelZoom={false} className="h-full w-full">
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; OpenStreetMap contributors'

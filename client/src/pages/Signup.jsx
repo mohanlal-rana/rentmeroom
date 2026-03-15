@@ -3,6 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Signup() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -10,23 +12,34 @@ function Signup() {
     confirmPassword: "",
   });
 
+  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const navigate = useNavigate();
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const newErr = { ...prev };
+        delete newErr[name];
+        return newErr;
+      });
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
+    setError("");
+    setFieldErrors({});
 
     try {
       const res = await fetch("http://localhost:3000/api/auth/signup", {
@@ -40,29 +53,30 @@ function Signup() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Signup failed");
-        return;
+        if (data.errors) {
+          const mapErr = {};
+
+          data.errors.forEach((err) => {
+            mapErr[err.field] = err.message;
+          });
+
+          setFieldErrors(mapErr);
+          throw new Error("Please correct the errors below");
+        }
+
+        throw new Error(data.message || "Signup failed");
       }
 
-      alert("OTP is sent to your email!");
       navigate("/verifyotp", { state: { email: formData.email } });
-
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      });
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Server error. Please try again.");
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: "linear-gradient(135deg, #837ab6, #f6a5c0)" }}
+      // style={{ background: "linear-gradient(135deg, #837ab6, #f6a5c0)" }}
     >
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
         <h2
@@ -72,56 +86,43 @@ function Signup() {
           Create Your Account
         </h2>
 
+        {error && (
+          <div className="bg-red-100 text-red-600 p-3 rounded mb-4 text-sm">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
-              style={{ borderColor: "#9d85b6", caretColor: "#837ab6" }}
-              placeholder="Enter your name"
-            />
-          </div>
+          <Input
+            label="Name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            error={fieldErrors.name}
+          />
 
           {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
-              style={{ borderColor: "#9d85b6", caretColor: "#837ab6" }}
-              placeholder="Enter your email"
-            />
-          </div>
+          <Input
+            label="Email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            error={fieldErrors.email}
+          />
 
           {/* Password */}
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type={showPassword ? "text" : "password"}
+            <Input
+              label="Password"
               name="password"
+              type={showPassword ? "text" : "password"}
               value={formData.password}
               onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 pr-10"
-              style={{ borderColor: "#cc8db3", caretColor: "#837ab6" }}
-              placeholder="Enter your password"
+              error={fieldErrors.password}
             />
+
             <span
               className="absolute top-9 right-3 cursor-pointer text-gray-500"
               onClick={() => setShowPassword(!showPassword)}
@@ -132,33 +133,26 @@ function Signup() {
 
           {/* Confirm Password */}
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm Password
-            </label>
-            <input
-              type={showConfirmPassword ? "text" : "password"}
+            <Input
+              label="Confirm Password"
               name="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
               value={formData.confirmPassword}
               onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 pr-10"
-              style={{ borderColor: "#cc8db3", caretColor: "#837ab6" }}
-              placeholder="Confirm your password"
+              error={fieldErrors.confirmPassword}
             />
+
             <span
               className="absolute top-9 right-3 cursor-pointer text-gray-500"
-              onClick={() =>
-                setShowConfirmPassword(!showConfirmPassword)
-              }
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
               {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full py-2 font-semibold rounded-lg transition duration-300 text-white"
+            className="w-full py-2 font-semibold rounded-lg text-white"
             style={{
               background: "linear-gradient(135deg, #9d85b6, #cc8db3)",
             }}
@@ -167,19 +161,38 @@ function Signup() {
           </button>
         </form>
 
-        {/* Footer */}
         <p className="text-center text-sm mt-6 text-gray-500">
           Already have an account?{" "}
-          <span
-            className="font-medium cursor-pointer hover:underline"
+          <Link
+            to="/login"
+            className="font-medium hover:underline"
             style={{ color: "#837ab6" }}
           >
-            <Link to="/Login">LOGIN</Link>
-          </span>
+            LOGIN
+          </Link>
         </p>
       </div>
     </div>
   );
 }
+
+/* Input Component (same pattern as AddRoom) */
+
+const Input = ({ label, error, ...props }) => (
+  <div>
+    <label className="block text-sm font-semibold text-gray-600 mb-1">
+      {label}
+    </label>
+
+    <input
+      {...props}
+      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#837ab6] outline-none ${
+        error ? "border-red-500 bg-red-50" : "border-gray-300"
+      }`}
+    />
+
+    {error && <p className="text-red-500 text-xs mt-1 font-medium">{error}</p>}
+  </div>
+);
 
 export default Signup;
