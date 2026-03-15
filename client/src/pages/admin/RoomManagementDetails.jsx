@@ -72,9 +72,17 @@ export default function RoomManagementDetails() {
       alert(err.message);
     }
   };
-  // Address is a string in your API response
-  const formattedAddress =
-    typeof room.address === "string" ? room.address : "N/A";
+  const formattedAddress = room.address
+    ? [
+        room.address.wardNo ? `Ward ${room.address.wardNo}` : null,
+        room.address.municipality,
+        room.address.district,
+        room.address.province,
+        room.address.country,
+      ]
+        .filter(Boolean)
+        .join(", ")
+    : "N/A";
 
   return (
     <div className="min-h-screen bg-[#f6f4fa] px-6 py-10">

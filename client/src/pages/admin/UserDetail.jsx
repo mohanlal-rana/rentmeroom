@@ -90,17 +90,13 @@ export default function UserDetail() {
     );
 
   // ✅ IMAGE HANDLING
-  const profileImage = user.owner?.profileImage?.startsWith("http")
-    ? user.owner.profileImage
-    : user.owner?.profileImage
-    ? `${API}${user.owner.profileImage}`
-    : null;
+  const getImageUrl = (filename) => {
+    if (!filename) return null;
+    return `${API}/uploads/${filename}`;
+  };
 
-  const govIDImage = user.owner?.govIDImage?.startsWith("http")
-    ? user.owner.govIDImage
-    : user.owner?.govIDImage
-    ? `${API}${user.owner.govIDImage}`
-    : null;
+  const profileImage = getImageUrl(user.owner?.profileImage);
+  const govIDImage = getImageUrl(user.owner?.govIDImage);
 
   return (
     <div className="min-h-screen bg-[#f6f4fa] px-6 py-10">
@@ -258,8 +254,8 @@ export default function UserDetail() {
               {processing
                 ? "Processing..."
                 : user.isActive
-                ? "Block User"
-                : "Activate User"}
+                  ? "Block User"
+                  : "Activate User"}
             </button>
           </div>
         </div>

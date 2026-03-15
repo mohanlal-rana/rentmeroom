@@ -10,7 +10,7 @@ const OwnerLayout = () => {
     if (!isLoading) {
       if (!isLoggedIn) {
         navigate("/login"); // not logged in
-      } else if (user.role !== "owner") {
+      } else if (user?.owner?.isVerified === false) {
         navigate("/"); // logged in but not owner
       }
     }

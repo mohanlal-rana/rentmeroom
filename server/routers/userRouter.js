@@ -23,7 +23,7 @@ router.get("/me", authenticateUser, async (req, res) => {
 
 //for owner
 router.put(
-  "/upgarde-to-owner",
+  "/upgrade-to-owner",
   authenticateUser,
   upload.fields([
     { name: "profileImage", maxCount: 1 },

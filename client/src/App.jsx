@@ -23,6 +23,8 @@ import EditRoom from './pages/owner/EditRoom'
 import SearchRooms from './components/SearchRooms'
 import Footer from './components/Footer'
 import SavedRooms from './pages/SavedRooms'
+import OwnerForm from './pages/OwnerForm'
+import ProfilePage from './pages/ProfilePage'
 function App() {
 
   return (
@@ -36,6 +38,9 @@ function App() {
       <Route path='/rooms/:id' element={<RoomDetails/>}/>
       <Route path='/interested' element={<InterestedRoom/>}/>
       <Route path="/search" element={<SearchRooms />} />
+      <Route path="/owner-form" element={<OwnerForm/>}/>
+      <Route path="/myprofile" element={<ProfilePage/>}/>
+      
 
       // user Routes
       <Route path='/saved-rooms' element={<SavedRooms/>}/>

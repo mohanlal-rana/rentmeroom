@@ -104,6 +104,20 @@ export default function Header() {
             >
               Saved-Rooms
             </Link>
+            {role === "user" && (
+              <Link
+                to="/owner-form"
+                className="font-medium text-gray-600 hover:text-[#9d85b6]"
+              >
+                Be-Owner
+              </Link>
+            )}
+            <Link
+              to="/myprofile"
+              className="font-medium text-gray-600 hover:text-[#9d85b6]"
+            >
+              My-Profile
+            </Link>
             <button
               onClick={() => logoutUser(navigate)}
               className="px-4 py-1.5 rounded-md font-semibold bg-[#cc8db3] hover:bg-[#9d85b6] text-white transition"

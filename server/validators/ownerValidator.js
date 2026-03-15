@@ -4,7 +4,7 @@ const ownerSchema = zod.object({
   .length(10, "Phone number must be exactly 10 digits")
   .regex(/^\d+$/, "Phone number must contain only digits"),
   profileImage: z.string().regex(/\.(jpg|jpeg|png)$/i, "Only JPG/PNG allowed"),
-  address: z.string().optional(),
+  address: z.string().min(1, "Address is required"),
   govIDType: z.string().min(1, "Gov ID Type is required"),
   govIDNumber: z.string().min(1, "Gov ID Number is required"),
   govIDImage: z.string().regex(/\.(jpg|jpeg|png)$/i, "Only JPG/PNG allowed"),
