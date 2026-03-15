@@ -47,7 +47,7 @@ client/.vite
 ####################################
 # Uploads (local file storage)
 ####################################
-uploads/
+# uploads/
 public/uploads/
 
 ####################################
