@@ -59,7 +59,6 @@ export default function Rooms() {
         method: "PUT",
         credentials: "include", // IMPORTANT for cookies
       });
-console.log(res)
       if (!res.ok) {
         alert("Please login first");
         return;

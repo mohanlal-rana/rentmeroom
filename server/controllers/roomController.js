@@ -7,7 +7,7 @@ import User from "../models/userModel.js";
 //public controller
 export const getRoom = async (req, res) => {
   try {
-    const rooms = await Room.find({ isVerified: true }).select("-contact");
+    const rooms = await Room.find({ isVerified: true, isActive: true }).select("-contact");
     // console.log(rooms);
     if (rooms.length == 0) {
       return res
@@ -32,7 +32,7 @@ export const getRoom = async (req, res) => {
 export const getRoomById = async (req, res) => {
   try {
     const id = req.params.id;
-    const room = await Room.findById(id).select("-contact");
+    const room = await Room.findOne({ _id: id, isVerified: true, isActive: true }).select("-contact");
     if (!room) {
       return res
         .status(404)
@@ -58,14 +58,11 @@ export const searchRooms = async (req, res) => {
       minRent,
       maxRent,
       features, // comma-separated: "wifi,parking"
-      lat,
-      lng,
-      radius, // meters
       page = 1,
       limit = 20,
     } = req.query;
 
-    const filter = { isVerified: true };
+    const filter = { isVerified: true, isActive: true };
 
     // Text search
     if (keywords) {
@@ -92,25 +89,11 @@ export const searchRooms = async (req, res) => {
       filter.features = { $all: featureArray };
     }
 
-    // Nearby search
-    if (lat && lng) {
-      const longitude = parseFloat(lng);
-      const latitude = parseFloat(lat);
-      if (!isNaN(longitude) && !isNaN(latitude)) {
-        filter.location = {
-          $near: {
-            $geometry: { type: "Point", coordinates: [longitude, latitude] },
-            $maxDistance: radius ? parseInt(radius) : 5000, // default 5km
-          },
-        };
-      }
-    }
-
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Fetch rooms
     const rooms = await Room.find(filter)
-      .select("title rent address images location features") // contact always hidden
+      .select("title rent address images features")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -121,7 +104,6 @@ export const searchRooms = async (req, res) => {
       rent: r.rent,
       address: r.address,
       images: r.images,
-      location: r.location,
       features: r.features,
       contact: null, // always hidden
     }));
@@ -402,6 +384,36 @@ export const updateRoom = async (req, res) => {
   } catch (error) {
     console.error("Update Error:", error);
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const toggleRoomStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const room = await Room.findById(id);
+
+    if (!room) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Room not found" });
+    }
+
+    // Only owner can disable/enable
+    if (room.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    room.isActive = !room.isActive;
+    await room.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Room is now ${room.isActive ? "active" : "disabled"}`,
+      room,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 

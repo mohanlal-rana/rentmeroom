@@ -20,14 +20,14 @@ const roomSchema = new mongoose.Schema(
     rent: { type: Number, required: true },
 
     address: {
-      country: { type: String, required: true },          // Nepal
-      province: { type: String },                          // Sudurpashchim
-      district: { type: String, required: true },          // Kailali
-      municipality: { type: String, required: true },     // Dhangadhi
-      wardNo: { type: Number },                             // 3
-      street: { type: String },                             // Main Road
-      houseNo: { type: String },                            // 12B
-      landmark: { type: String },                           // Near hospital (optional)
+      country: { type: String, required: true }, // Nepal
+      province: { type: String }, // Sudurpashchim
+      district: { type: String, required: true }, // Kailali
+      municipality: { type: String, required: true }, // Dhangadhi
+      wardNo: { type: Number }, // 3
+      street: { type: String }, // Main Road
+      houseNo: { type: String }, // 12B
+      landmark: { type: String }, // Near hospital (optional)
     },
 
     // GeoJSON (optional, but useful for map filtering)
@@ -51,11 +51,11 @@ const roomSchema = new mongoose.Schema(
     },
 
     description: { type: String, required: true },
-
+    isActive: { type: Boolean, default: true },
     isVerified: { type: Boolean, default: false },
   },
 
-  { timestamps: true } // adds createdAt & updatedAt
+  { timestamps: true }, // adds createdAt & updatedAt
 );
 
 // Enable geospatial index for searching nearby rooms

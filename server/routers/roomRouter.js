@@ -11,6 +11,7 @@ import {
   getSavedRooms,
   saveRoom,
   searchRooms,
+  toggleRoomStatus,
   unsaveRoom,
   updateRoom,
   verifyRoom,
@@ -62,6 +63,8 @@ router.put(
   validate(createRoomSchema),
   updateRoom
 );
+
+router.put("/:id/roomstatus", authenticateUser, authorizeOwner, toggleRoomStatus);
 router.delete("/:id", authenticateUser, authorizeOwner, deleteRoom);
 
 //admin route

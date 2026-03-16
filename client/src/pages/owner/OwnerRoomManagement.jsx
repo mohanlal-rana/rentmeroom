@@ -35,6 +35,28 @@ const OwnerRoomManagement = () => {
     fetchRooms();
   }, [API]);
 
+  /* ---------------- Toggle Active ---------------- */
+  const toggleRoom = async (roomId) => {
+    try {
+      const res = await fetch(`${API}/api/rooms/${roomId}/roomstatus`, {
+        method: "PUT",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+
+      // Update state locally
+      setRooms((prev) =>
+        prev.map((r) =>
+          r._id === roomId ? { ...r, isActive: data.room.isActive } : r,
+        ),
+      );
+    } catch (err) {
+      alert("Failed to toggle room: " + err.message);
+    }
+  };
+
   /* ---------------- States ---------------- */
 
   if (loading) {
@@ -58,9 +80,7 @@ const OwnerRoomManagement = () => {
   return (
     <div className="min-h-screen bg-[#f6f4fa] px-6 py-10">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-[#837ab6]">
-          My Rooms
-        </h1>
+        <h1 className="text-3xl font-bold text-[#837ab6]">My Rooms</h1>
 
         <Link
           to="add"
@@ -81,19 +101,14 @@ const OwnerRoomManagement = () => {
               <th className="px-6 py-4 font-semibold">Rent</th>
               <th className="px-6 py-4 font-semibold">Status</th>
               <th className="px-6 py-4 font-semibold">Created</th>
-              <th className="px-6 py-4 font-semibold text-center">
-                Action
-              </th>
+              <th className="px-6 py-4 font-semibold text-center">Action</th>
             </tr>
           </thead>
 
           <tbody>
             {rooms.length === 0 && (
               <tr>
-                <td
-                  colSpan="6"
-                  className="text-center py-10 text-gray-400"
-                >
+                <td colSpan="6" className="text-center py-10 text-gray-400">
                   No rooms added yet.
                 </td>
               </tr>
@@ -160,6 +175,16 @@ const OwnerRoomManagement = () => {
                   >
                     {room.isVerified ? "Verified" : "Pending"}
                   </span>
+                  <br />
+                  <span
+                    className={`px-3 py-1 mt-1 text-xs font-semibold rounded-full ${
+                      room.isActive
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {room.isActive ? "Active" : "Disabled"}
+                  </span>
                 </td>
 
                 {/* Created */}
@@ -168,13 +193,23 @@ const OwnerRoomManagement = () => {
                 </td>
 
                 {/* Action */}
-                <td className="px-6 py-4 text-center">
+                <td className="px-6 py-4 text-center flex justify-center gap-2">
                   <button
                     onClick={() => navigate(`/owner/rooms/${room._id}`)}
-                    className="bg-[#837ab6] text-white px-4 py-2 rounded-lg
-                               hover:bg-[#9d85b6] transition text-sm font-semibold"
+                    className="bg-[#837ab6] text-white px-4 py-2 rounded-lg hover:bg-[#9d85b6] transition text-sm font-semibold"
                   >
                     View
+                  </button>
+
+                  <button
+                    onClick={() => toggleRoom(room._id)}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                      room.isActive
+                        ? "bg-red-500 text-white hover:bg-red-600"
+                        : "bg-green-500 text-white hover:bg-green-600"
+                    }`}
+                  >
+                    {room.isActive ? "Disable" : "Enable"}
                   </button>
                 </td>
               </tr>
