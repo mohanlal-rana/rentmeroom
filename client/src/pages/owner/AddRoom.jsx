@@ -305,6 +305,7 @@ const AddRoom = () => {
               label="Rent (Rs.)"
               name="rent"
               type="number"
+              min={0}
               value={form.rent}
               onChange={handleChange}
               error={fieldErrors.rent}

@@ -292,7 +292,7 @@ const EditRoom = () => {
           {/* Inputs */}
           <div className="grid md:grid-cols-2 gap-4">
             <Input label="Room Title" name="title" value={form.title} onChange={handleChange} error={fieldErrors.title} />
-            <Input label="Rent (Rs.)" name="rent" type="number" value={form.rent} onChange={handleChange} error={fieldErrors.rent} />
+            <Input label="Rent (Rs.)" name="rent" type="number" min={0} value={form.rent} onChange={handleChange} error={fieldErrors.rent} />
           </div>
           <Input label="Contact Number" name="contact" value={form.contact} onChange={handleChange} error={fieldErrors.contact} />
           <Textarea label="Description" name="description" value={form.description} onChange={handleChange} error={fieldErrors.description} />
