@@ -185,7 +185,8 @@ const AddRoom = () => {
   };
 
   const handleViewLocation = async () => {
-    const { province, district, municipality } = form.address;
+    const { province, district, municipality, wardNo } = form.address;
+
     if (!province || !district || !municipality)
       return alert("Select all fields first");
 
@@ -198,20 +199,34 @@ const AddRoom = () => {
     }
 
     try {
-      const query = `${municipality}, ${district}, ${province}, Nepal`;
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          query,
-        )}`,
-      );
-      const data = await res.json();
-      if (data.length) {
-        setLocation([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
-        setCoordinates([parseFloat(data[0].lon), parseFloat(data[0].lat)]);
-        setMapZoom(14);
-      } else {
-        alert("Location not found, click manually on map");
+      const queries = [
+        `${municipality}-${wardNo}`, // Belauri-07
+        `${municipality}-${wardNo}, ${district}, Nepal`,
+        `Ward ${wardNo}, ${municipality}, ${district}, Nepal`,
+        `${municipality} Ward ${wardNo}, ${district}, Nepal`,
+        `${municipality}, ${district}, Nepal`,
+        `${municipality}, Nepal`,
+      ];
+
+      let found = false;
+
+      for (const q of queries) {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`,
+        );
+
+        const data = await res.json();
+
+        if (data.length) {
+          setLocation([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+          setCoordinates([parseFloat(data[0].lon), parseFloat(data[0].lat)]);
+          setMapZoom(16);
+          found = true;
+          break;
+        }
       }
+
+      if (!found) alert("Location not found, click manually on map");
     } catch {
       alert("Error fetching location");
     }
