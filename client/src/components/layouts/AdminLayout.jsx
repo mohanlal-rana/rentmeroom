@@ -43,6 +43,9 @@ function AdminLayout() {
           <NavLink to="rooms" style={{ color: "#fff" }}>
             Rooms
           </NavLink>
+          <NavLink to="interests" style={{ color: "#fff" }}>
+            Interested
+          </NavLink>
           <NavLink to="/" style={{ color: "#fff" }}>
             Home
           </NavLink>

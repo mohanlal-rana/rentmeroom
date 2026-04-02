@@ -66,14 +66,13 @@ export const getInterestedRooms = async (req, res) => {
 
     for (const i of filtered) {
       // 🔥 Get all interests for this room sorted by time (oldest first)
-      const roomQueue = await Interested.find({ room: i.room._id })
-        .sort({ createdAt: 1 });
+      const roomQueue = await Interested.find({ room: i.room._id }).sort({
+        createdAt: 1,
+      });
 
       // 🔥 Find position in queue
       const position =
-        roomQueue.findIndex(
-          (r) => r._id.toString() === i._id.toString()
-        ) + 1;
+        roomQueue.findIndex((r) => r._id.toString() === i._id.toString()) + 1;
 
       result.push({
         _id: i._id,
@@ -236,6 +235,93 @@ export const deleteInterest = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error: Unable to delete interest",
+    });
+  }
+};
+// Admin fetches all interests (for all rooms)
+// controllers/adminController.js
+
+export const getAllInterestsForAdmin = async (req, res) => {
+  try {
+    const interests = await Interested.find()
+      .populate({
+        path: "user",
+        select: "name email",
+      })
+      .populate({
+        path: "room",
+        select: "title rent address contact owner",
+        populate: {
+          path: "owner",
+          select: "name email",
+        },
+      })
+      .sort({ createdAt: -1 });
+
+    const result = interests.map((i) => ({
+      _id: i._id,
+      status: i.status,
+      message: i.message,
+      createdAt: i.createdAt,
+
+      user: i.user
+        ? {
+            _id: i.user._id,
+            name: i.user.name,
+            email: i.user.email,
+          }
+        : null,
+
+      room: i.room
+        ? {
+            _id: i.room._id,
+            title: i.room.title,
+            rent: i.room.rent,
+            address: i.room.address,
+
+            contact: i.status === "contacted" ? i.room.contact : null,
+
+            owner: i.room.owner
+              ? {
+                  name: i.room.owner.name,
+                  email: i.room.owner.email,
+                }
+              : null,
+          }
+        : null,
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch interests",
+    });
+  }
+};
+
+export const updateInterestStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    const interest = await Interested.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      data: interest,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Status update failed",
     });
   }
 };
