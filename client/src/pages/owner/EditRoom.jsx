@@ -23,11 +23,6 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-const municipalityCoordinates = {
-  Dhangadhi: [28.7017, 80.594],
-  Tikapur: [28.46, 81.0167],
-  Bhimdatta: [28.95, 80.5333],
-};
 
 const EditRoom = () => {
   const { id } = useParams();
@@ -80,7 +75,9 @@ const EditRoom = () => {
           rent: r.rent || "",
           contact: r.contact || "",
           description: r.description || "",
-          features: Array.isArray(r.features) ? r.features.join(", ") : r.features || "",
+          features: Array.isArray(r.features)
+            ? r.features.join(", ")
+            : r.features || "",
           address: r.address || form.address,
         });
         setExistingImages(r.images || []);
@@ -92,7 +89,9 @@ const EditRoom = () => {
         }
 
         // Restore dropdowns
-        const p = provinceObj.allProvinces().find((x) => x.name === r.address.province);
+        const p = provinceObj
+          .allProvinces()
+          .find((x) => x.name === r.address.province);
         if (p) {
           const d = districtObj.getDistrictsByProvince(p.id);
           setDistricts(d.map((x) => x.name));
@@ -122,7 +121,10 @@ const EditRoom = () => {
       const key = name.split(".")[1];
       setForm((p) => ({
         ...p,
-        address: { ...p.address, [key]: key === "wardNo" ? Number(value) : value },
+        address: {
+          ...p.address,
+          [key]: key === "wardNo" ? Number(value) : value,
+        },
       }));
       return;
     }
@@ -167,7 +169,8 @@ const EditRoom = () => {
     ]);
   };
 
-  const removeExisting = (img) => setExistingImages((p) => p.filter((i) => i !== img));
+  const removeExisting = (img) =>
+    setExistingImages((p) => p.filter((i) => i !== img));
   const removeNew = (i) => setNewImages((p) => p.filter((_, x) => x !== i));
 
   // ---------------- Map ----------------
@@ -190,35 +193,61 @@ const EditRoom = () => {
   };
 
   const handleViewLocation = async () => {
-    const { province, district, municipality } = form.address;
-    if (!province || !district || !municipality) return alert("Select all fields first");
+    const { district, municipality, wardNo } = form.address;
 
-    if (municipalityCoordinates[municipality]) {
-      const [lat, lng] = municipalityCoordinates[municipality];
-      setLocation([lat, lng]);
-      setCoordinates([lng, lat]);
-      setMapZoom(14);
+    if (!district || !municipality) {
+      alert("Select required fields");
       return;
     }
 
+    const queries = [
+      wardNo ? `${municipality} Ward ${wardNo}, ${district}, Nepal` : null,
+      wardNo ? `${municipality}-${wardNo}, ${district}, Nepal` : null,
+      `${municipality}, ${district}, Nepal`,
+    ].filter(Boolean);
+
     try {
-      const query = `${municipality}, ${district}, ${province}, Nepal`;
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
-      );
-      const data = await res.json();
-      if (data.length) {
-        setLocation([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
-        setCoordinates([parseFloat(data[0].lon), parseFloat(data[0].lat)]);
-        setMapZoom(14);
-      } else {
-        alert("Location not found, click manually on map");
+      let finalResult = null;
+
+      for (let query of queries) {
+        const res = await fetch(
+          `${API}/api/geocode?q=${encodeURIComponent(query)}`,
+        );
+
+        const data = await res.json();
+
+        if (data.length > 0) {
+          // Prefer ward match if available
+          if (wardNo) {
+            const wardMatch = data.find((d) =>
+              d.display_name?.toLowerCase().includes(`ward ${wardNo}`),
+            );
+            if (wardMatch) {
+              finalResult = wardMatch;
+              break;
+            }
+          }
+
+          finalResult = data[0];
+          break;
+        }
       }
-    } catch {
+
+      if (finalResult) {
+        const lat = parseFloat(finalResult.lat);
+        const lon = parseFloat(finalResult.lon);
+
+        setLocation([lat, lon]);
+        setCoordinates([lon, lat]);
+        setMapZoom(15);
+      } else {
+        alert("Location not found, click manually");
+      }
+    } catch (err) {
+      console.error(err);
       alert("Error fetching location");
     }
   };
-
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) return alert("Geolocation not supported");
     navigator.geolocation.getCurrentPosition(
@@ -228,7 +257,7 @@ const EditRoom = () => {
         setMapZoom(16);
       },
       () => {},
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true },
     );
   };
 
@@ -286,47 +315,164 @@ const EditRoom = () => {
   return (
     <div className="min-h-screen bg-[#f6f4fa] px-6 py-10">
       <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-[#837ab6] text-center mb-6">Edit Room</h1>
-        {error && <div className="bg-red-100 text-red-600 p-3 rounded-lg mb-6 text-sm">{error}</div>}
+        <h1 className="text-3xl font-bold text-[#837ab6] text-center mb-6">
+          Edit Room
+        </h1>
+        {error && (
+          <div className="bg-red-100 text-red-600 p-3 rounded-lg mb-6 text-sm">
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Inputs */}
           <div className="grid md:grid-cols-2 gap-4">
-            <Input label="Room Title" name="title" value={form.title} onChange={handleChange} error={fieldErrors.title} />
-            <Input label="Rent (Rs.)" name="rent" type="number" min={0} value={form.rent} onChange={handleChange} error={fieldErrors.rent} />
+            <Input
+              label="Room Title"
+              name="title"
+              value={form.title}
+              onChange={handleChange}
+              error={fieldErrors.title}
+            />
+            <Input
+              label="Rent (Rs.)"
+              name="rent"
+              type="number"
+              min={0}
+              value={form.rent}
+              onChange={handleChange}
+              error={fieldErrors.rent}
+            />
           </div>
-          <Input label="Contact Number" name="contact" value={form.contact} onChange={handleChange} error={fieldErrors.contact} />
-          <Textarea label="Description" name="description" value={form.description} onChange={handleChange} error={fieldErrors.description} />
-          <Textarea label="Features (comma separated)" name="features" value={form.features} onChange={handleChange} error={fieldErrors.features} />
+          <Input
+            label="Contact Number"
+            name="contact"
+            value={form.contact}
+            onChange={handleChange}
+            error={fieldErrors.contact}
+          />
+          <Textarea
+            label="Description"
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            error={fieldErrors.description}
+          />
+          <Textarea
+            label="Features (comma separated)"
+            name="features"
+            value={form.features}
+            onChange={handleChange}
+            error={fieldErrors.features}
+          />
 
           {/* Address */}
-          <h3 className="font-semibold text-[#837ab6] border-b pb-2">Location Details</h3>
+          <h3 className="font-semibold text-[#837ab6] border-b pb-2">
+            Location Details
+          </h3>
           <div className="grid md:grid-cols-3 gap-4">
-            <Select label="Province" name="address.province" value={form.address.province} onChange={handleProvince} options={provinceObj.allProvinces().map((p) => p.name)} error={fieldErrors["address.province"]} />
-            <Select label="District" name="address.district" value={form.address.district} onChange={handleDistrict} options={districts} error={fieldErrors["address.district"]} />
-            <Select label="Municipality" name="address.municipality" value={form.address.municipality} onChange={handleMunicipality} options={municipalities} error={fieldErrors["address.municipality"]} />
-            <Select label="Ward No" name="address.wardNo" value={form.address.wardNo} onChange={handleChange} options={wards} error={fieldErrors["address.wardNo"]} />
-            <Input label="Street" name="address.street" value={form.address.street} onChange={handleChange} error={fieldErrors["address.street"]} />
-            <Input label="House No" name="address.houseNo" value={form.address.houseNo} onChange={handleChange} error={fieldErrors["address.houseNo"]} />
-            <Input label="Landmark" name="address.landmark" value={form.address.landmark} onChange={handleChange} error={fieldErrors["address.landmark"]} />
+            <Select
+              label="Province"
+              name="address.province"
+              value={form.address.province}
+              onChange={handleProvince}
+              options={provinceObj.allProvinces().map((p) => p.name)}
+              error={fieldErrors["address.province"]}
+            />
+            <Select
+              label="District"
+              name="address.district"
+              value={form.address.district}
+              onChange={handleDistrict}
+              options={districts}
+              error={fieldErrors["address.district"]}
+            />
+            <Select
+              label="Municipality"
+              name="address.municipality"
+              value={form.address.municipality}
+              onChange={handleMunicipality}
+              options={municipalities}
+              error={fieldErrors["address.municipality"]}
+            />
+            <Select
+              label="Ward No"
+              name="address.wardNo"
+              value={form.address.wardNo}
+              onChange={handleChange}
+              options={wards}
+              error={fieldErrors["address.wardNo"]}
+            />
+            <Input
+              label="Street"
+              name="address.street"
+              value={form.address.street}
+              onChange={handleChange}
+              error={fieldErrors["address.street"]}
+            />
+            <Input
+              label="House No"
+              name="address.houseNo"
+              value={form.address.houseNo}
+              onChange={handleChange}
+              error={fieldErrors["address.houseNo"]}
+            />
+            <Input
+              label="Landmark"
+              name="address.landmark"
+              value={form.address.landmark}
+              onChange={handleChange}
+              error={fieldErrors["address.landmark"]}
+            />
           </div>
 
           {/* Map */}
           <div className="my-4">
             <div className="flex gap-2 mb-2">
-              <button type="button" onClick={handleViewLocation} className="bg-[#837ab6] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90">📍 Locate via Address</button>
-              <button type="button" onClick={handleGetCurrentLocation} className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700">🎯 Use My GPS Location</button>
+              <button
+                type="button"
+                onClick={handleViewLocation}
+                className="bg-[#837ab6] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90"
+              >
+                📍 Locate via Address
+              </button>
+              <button
+                type="button"
+                onClick={handleGetCurrentLocation}
+                className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700"
+              >
+                🎯 Use My GPS Location
+              </button>
             </div>
             <div className="h-80 border rounded-xl overflow-hidden shadow-inner">
-              <MapContainer center={location} zoom={mapZoom} className="h-full w-full">
+              <MapContainer
+                center={location}
+                zoom={mapZoom}
+                className="h-full w-full"
+              >
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <MapController location={location} zoom={mapZoom} />
                 <LocationMarker />
               </MapContainer>
             </div>
-            <p className="text-xs text-gray-500 mt-2 italic">* Click on the map to set exact room location</p>
+            <p className="text-xs text-gray-500 mt-2 italic">
+              * Click on the map to set exact room location
+            </p>
             <div className="mt-1 flex items-center gap-2 bg-gray-100 p-2 rounded-md text-sm font-mono w-max">
-              <span>Lat: {coordinates[1].toFixed(6)}, Lng: {coordinates[0].toFixed(6)}</span>
-              <button type="button" onClick={() => navigator.clipboard.writeText(`${coordinates[1].toFixed(6)}, ${coordinates[0].toFixed(6)}`)} className="bg-[#837ab6] text-white px-2 py-1 rounded hover:bg-[#6c63a3] text-xs">📋 Copy</button>
+              <span>
+                Lat: {coordinates[1].toFixed(6)}, Lng:{" "}
+                {coordinates[0].toFixed(6)}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  navigator.clipboard.writeText(
+                    `${coordinates[1].toFixed(6)}, ${coordinates[0].toFixed(6)}`,
+                  )
+                }
+                className="bg-[#837ab6] text-white px-2 py-1 rounded hover:bg-[#6c63a3] text-xs"
+              >
+                📋 Copy
+              </button>
             </div>
           </div>
 
@@ -335,25 +481,57 @@ const EditRoom = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
             {existingImages.map((img, i) => (
               <div key={i} className="relative group shadow-sm">
-                <img src={img.url.startsWith("http") ? img.url : `${API}${img.url}`} alt="room" className="h-24 w-full object-cover rounded-lg border" />
-                <button type="button" onClick={() => removeExisting(img)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs shadow-md">✕</button>
+                <img
+                  src={
+                    img.url.startsWith("http") ? img.url : `${API}${img.url}`
+                  }
+                  alt="room"
+                  className="h-24 w-full object-cover rounded-lg border"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeExisting(img)}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs shadow-md"
+                >
+                  ✕
+                </button>
               </div>
             ))}
           </div>
 
           {/* New Images */}
           <h3 className="font-semibold text-[#837ab6]">Add New Images</h3>
-          <input type="file" multiple accept="image/*" onChange={handleNewImages} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#837ab6] file:text-white file:cursor-pointer mb-4" />
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleNewImages}
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#837ab6] file:text-white file:cursor-pointer mb-4"
+          />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {newImages.map((img, i) => (
               <div key={i} className="relative group shadow-sm">
-                <img src={img.preview} className="h-24 w-full object-cover rounded-lg border" />
-                <button type="button" onClick={() => removeNew(i)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs shadow-md">✕</button>
+                <img
+                  src={img.preview}
+                  className="h-24 w-full object-cover rounded-lg border"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeNew(i)}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs shadow-md"
+                >
+                  ✕
+                </button>
               </div>
             ))}
           </div>
 
-          <button disabled={saving} className="w-full bg-[#837ab6] text-white py-4 rounded-xl font-bold hover:bg-[#6c63a3] transition-all disabled:opacity-50 shadow-lg">{saving ? "Updating Room..." : "Update Room"}</button>
+          <button
+            disabled={saving}
+            className="w-full bg-[#837ab6] text-white py-4 rounded-xl font-bold hover:bg-[#6c63a3] transition-all disabled:opacity-50 shadow-lg"
+          >
+            {saving ? "Updating Room..." : "Update Room"}
+          </button>
         </form>
       </div>
     </div>
@@ -363,27 +541,46 @@ const EditRoom = () => {
 /* ================= UI COMPONENTS ================= */
 const Input = ({ label, error, ...props }) => (
   <div className="w-full">
-    <label className="block text-sm font-semibold text-gray-600 mb-1">{label}</label>
-    <input {...props} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#837ab6] outline-none transition-all ${error ? "border-red-500 bg-red-50" : "border-gray-300"}`} />
+    <label className="block text-sm font-semibold text-gray-600 mb-1">
+      {label}
+    </label>
+    <input
+      {...props}
+      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#837ab6] outline-none transition-all ${error ? "border-red-500 bg-red-50" : "border-gray-300"}`}
+    />
     {error && <p className="text-red-500 text-xs mt-1 font-medium">{error}</p>}
   </div>
 );
 
 const Textarea = ({ label, error, ...props }) => (
   <div className="w-full">
-    <label className="block text-sm font-semibold text-gray-600 mb-1">{label}</label>
-    <textarea {...props} rows="3" className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#837ab6] outline-none transition-all ${error ? "border-red-500 bg-red-50" : "border-gray-300"}`} />
+    <label className="block text-sm font-semibold text-gray-600 mb-1">
+      {label}
+    </label>
+    <textarea
+      {...props}
+      rows="3"
+      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#837ab6] outline-none transition-all ${error ? "border-red-500 bg-red-50" : "border-gray-300"}`}
+    />
     {error && <p className="text-red-500 text-xs mt-1 font-medium">{error}</p>}
   </div>
 );
 
 const Select = ({ label, options, disabled, error, ...props }) => (
   <div className="w-full">
-    <label className="block text-sm font-semibold text-gray-600 mb-1">{label}</label>
-    <select {...props} disabled={disabled} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#837ab6] outline-none bg-white transition-all disabled:bg-gray-100 ${error ? "border-red-500 bg-red-50" : "border-gray-300"}`}>
+    <label className="block text-sm font-semibold text-gray-600 mb-1">
+      {label}
+    </label>
+    <select
+      {...props}
+      disabled={disabled}
+      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#837ab6] outline-none bg-white transition-all disabled:bg-gray-100 ${error ? "border-red-500 bg-red-50" : "border-gray-300"}`}
+    >
       <option value="">Select {label}</option>
       {options.map((o) => (
-        <option key={o} value={o}>{o}</option>
+        <option key={o} value={o}>
+          {o}
+        </option>
       ))}
     </select>
     {error && <p className="text-red-500 text-xs mt-1 font-medium">{error}</p>}

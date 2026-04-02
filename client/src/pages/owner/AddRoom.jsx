@@ -23,12 +23,6 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-const municipalityCoordinates = {
-  Dhangadhi: [28.7017, 80.594],
-  Tikapur: [28.46, 81.0167],
-  Bhimdatta: [28.95, 80.5333],
-};
-
 const AddRoom = () => {
   const { API } = useAuth();
   const navigate = useNavigate();
@@ -185,34 +179,46 @@ const AddRoom = () => {
   };
 
   const handleViewLocation = async () => {
-    const { province, district, municipality } = form.address;
-    if (!province || !district || !municipality)
-      return alert("Select all fields first");
+    const { district, municipality, wardNo } = form.address;
 
-    if (municipalityCoordinates[municipality]) {
-      const [lat, lng] = municipalityCoordinates[municipality];
-      setLocation([lat, lng]);
-      setCoordinates([lng, lat]);
-      setMapZoom(14);
+    if (!district || !municipality) {
+      alert("Select required fields");
       return;
     }
 
+    const queries = [
+      `${municipality}-${wardNo}, ${district}, Nepal`,
+      `${municipality}, ${district}, Nepal`,
+    ];
+
     try {
-      const query = `${municipality}, ${district}, ${province}, Nepal`;
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          query,
-        )}`,
-      );
-      const data = await res.json();
-      if (data.length) {
-        setLocation([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
-        setCoordinates([parseFloat(data[0].lon), parseFloat(data[0].lat)]);
-        setMapZoom(14);
-      } else {
-        alert("Location not found, click manually on map");
+      let finalResult = null;
+
+      for (let query of queries) {
+        const res = await fetch(
+          `${API}/api/geocode?q=${encodeURIComponent(query)}`,
+        );
+
+        const data = await res.json();
+
+        if (data.length > 0) {
+          finalResult = data[0];
+          break;
+        }
       }
-    } catch {
+
+      if (finalResult) {
+        const lat = parseFloat(finalResult.lat);
+        const lon = parseFloat(finalResult.lon);
+
+        setLocation([lat, lon]);
+        setCoordinates([lon, lat]);
+        setMapZoom(15);
+      } else {
+        alert("Location not found, click manually");
+      }
+    } catch (err) {
+      console.error(err);
       alert("Error fetching location");
     }
   };
@@ -358,6 +364,13 @@ const AddRoom = () => {
               options={wards}
               disabled={!wards.length}
               error={fieldErrors["address.wardNo"]}
+            />
+            <Input
+              label="House No"
+              name="address.houseNo"
+              value={form.address.houseNo}
+              onChange={handleChange}
+              error={fieldErrors["address.houseNo"]}
             />
             <Input
               label="Street"

@@ -45,7 +45,7 @@ export default function RoomDetails() {
         console.error("Fetch error:", err);
         setLoading(false);
       });
-  }, [id]);
+  }, [id, API]);
 
   const handleMarkInterested = async () => {
     setButtonLoading(true);
@@ -69,6 +69,24 @@ export default function RoomDetails() {
     } finally {
       setButtonLoading(false);
     }
+  };
+
+  // ✅ Google Maps Button Handler
+  const handleOpenGoogleMaps = () => {
+    const coordinates =
+      room.location?.coordinates && room.location.coordinates.length === 2
+        ? [room.location.coordinates[1], room.location.coordinates[0]]
+        : [0, 0];
+
+    const [lat, lng] = coordinates;
+
+    if (lat === 0 && lng === 0) {
+      alert("Location not available");
+      return;
+    }
+
+    const url = `https://www.google.com/maps?q=${lat},${lng}`;
+    window.open(url, "_blank");
   };
 
   if (loading)
@@ -103,7 +121,7 @@ export default function RoomDetails() {
                 : "https://via.placeholder.com/800x400?text=No+Image"
             }
             alt={room.title}
-            className="w-full h-80 sm:h-96 md:h-[28rem] object-cover rounded-xl transition-all duration-300"
+            className="w-full h-80 sm:h-96 md:h-[28rem] object-cover rounded-xl"
           />
 
           {/* Thumbnails */}
@@ -114,13 +132,13 @@ export default function RoomDetails() {
                   key={idx}
                   src={`${API}${img.url}`}
                   alt={`Thumbnail ${idx + 1}`}
-                  className={`w-20 h-20 object-cover rounded-lg cursor-pointer border-2 transition ${
+                  className={`w-20 h-20 object-cover rounded-lg cursor-pointer border-2 ${
                     selectedImage === img.url
                       ? "border-[#837ab6]"
                       : "border-gray-200"
                   }`}
-                  onMouseEnter={() => setSelectedImage(img.url)} // hover
-                  onClick={() => setSelectedImage(img.url)} // click
+                  onMouseEnter={() => setSelectedImage(img.url)}
+                  onClick={() => setSelectedImage(img.url)}
                 />
               ))}
             </div>
@@ -148,6 +166,7 @@ export default function RoomDetails() {
             </span>
           </p>
 
+          {/* Features */}
           {room.features.length > 0 && (
             <div className="flex flex-wrap gap-3 mt-2">
               {room.features.map((feature, index) => (
@@ -179,7 +198,7 @@ export default function RoomDetails() {
             </p>
           )}
 
-          {/* Mark Interested Button */}
+          {/* Interested Button */}
           <button
             onClick={handleMarkInterested}
             disabled={interested || buttonLoading}
@@ -195,6 +214,14 @@ export default function RoomDetails() {
               : buttonLoading
                 ? "Loading..."
                 : "Mark Interested"}
+          </button>
+
+          {/* ✅ Google Maps Button */}
+          <button
+            onClick={handleOpenGoogleMaps}
+            className="mt-2 w-full py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+          >
+            View on Google Maps
           </button>
         </div>
 
