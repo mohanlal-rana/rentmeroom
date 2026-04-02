@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../store/AuthContext.jsx";
+import { useNavigate } from "react-router-dom";
 
 const AdminInterested = () => {
   const { API } = useAuth();
+  const navigate = useNavigate();
+
   const [interests, setInterests] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Build address string
+  // ✅ Address builder
   const buildAddress = (addr) => {
     if (!addr) return "N/A";
 
@@ -21,7 +24,7 @@ const AdminInterested = () => {
       .join(", ");
   };
 
-  // 🔹 Fetch
+  // 🔹 Fetch data
   const fetchInterests = async () => {
     try {
       setLoading(true);
@@ -42,7 +45,7 @@ const AdminInterested = () => {
     }
   };
 
-  // 🔹 Update Status
+  // 🔹 Update status
   const updateStatus = async (id, status) => {
     try {
       const res = await fetch(`${API}/api/interested/admin/interests/${id}`, {
@@ -55,22 +58,9 @@ const AdminInterested = () => {
       const data = await res.json();
 
       if (data.success) {
-        // ⚡ Optimistic UI update
         setInterests((prev) =>
           prev.map((item) =>
-            item._id === id
-              ? {
-                  ...item,
-                  status,
-                  room: {
-                    ...item.room,
-                    contact:
-                      status === "contacted"
-                        ? item.room.contact
-                        : null,
-                  },
-                }
-              : item
+            item._id === id ? { ...item, status } : item
           )
         );
       }
@@ -95,9 +85,9 @@ const AdminInterested = () => {
             <tr className="bg-gray-100">
               <th className="p-3 border">User</th>
               <th className="p-3 border">Room</th>
+              <th className="p-3 border">Owner</th>
               <th className="p-3 border">Rent</th>
               <th className="p-3 border">Address</th>
-              <th className="p-3 border">Message</th>
               <th className="p-3 border">Status</th>
               <th className="p-3 border">Contact</th>
               <th className="p-3 border">Action</th>
@@ -106,7 +96,11 @@ const AdminInterested = () => {
 
           <tbody>
             {interests.map((i) => (
-              <tr key={i._id} className="text-center hover:bg-gray-50">
+              <tr
+                key={i._id}
+                className="text-center hover:bg-gray-50"
+              >
+                {/* USER */}
                 <td className="p-3 border">
                   <div className="font-semibold">{i.user?.name}</div>
                   <div className="text-sm text-gray-500">
@@ -114,18 +108,35 @@ const AdminInterested = () => {
                   </div>
                 </td>
 
-                <td className="p-3 border">{i.room?.title}</td>
+                {/* ROOM (CLICKABLE) */}
+                <td
+                  className="p-3 border text-blue-600 cursor-pointer hover:underline"
+                  onClick={() => navigate(`/room/${i.room?._id}`)}
+                >
+                  {i.room?.title}
+                </td>
 
+                {/* OWNER */}
+                <td className="p-3 border">
+                  <div className="font-semibold">
+                    {i.room?.owner?.name}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {i.room?.owner?.email}
+                  </div>
+                </td>
+
+                {/* RENT */}
                 <td className="p-3 border">
                   Rs. {i.room?.rent}
                 </td>
 
+                {/* ADDRESS */}
                 <td className="p-3 border">
                   {buildAddress(i.room?.address)}
                 </td>
 
-                <td className="p-3 border">{i.message}</td>
-
+                {/* STATUS */}
                 <td className="p-3 border">
                   <span
                     className={`px-3 py-1 rounded-full text-white text-sm ${
@@ -140,10 +151,12 @@ const AdminInterested = () => {
                   </span>
                 </td>
 
+                {/* CONTACT */}
                 <td className="p-3 border">
                   {i.room?.contact || "Hidden"}
                 </td>
 
+                {/* ACTION */}
                 <td className="p-3 border space-x-2">
                   <button
                     onClick={() =>

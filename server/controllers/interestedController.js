@@ -261,7 +261,6 @@ export const getAllInterestsForAdmin = async (req, res) => {
     const result = interests.map((i) => ({
       _id: i._id,
       status: i.status,
-      message: i.message,
       createdAt: i.createdAt,
 
       user: i.user
@@ -274,7 +273,7 @@ export const getAllInterestsForAdmin = async (req, res) => {
 
       room: i.room
         ? {
-            _id: i.room._id,
+            _id: i.room._id, // ✅ IMPORTANT (for navigation)
             title: i.room.title,
             rent: i.room.rent,
             address: i.room.address,
@@ -283,6 +282,7 @@ export const getAllInterestsForAdmin = async (req, res) => {
 
             owner: i.room.owner
               ? {
+                  _id: i.room.owner._id,
                   name: i.room.owner.name,
                   email: i.room.owner.email,
                 }
