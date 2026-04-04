@@ -179,9 +179,9 @@ const AddRoom = () => {
   };
 
   const handleViewLocation = async () => {
-    const { district, municipality, wardNo } = form.address;
+    const { district, municipality, wardNo, street } = form.address;
 
-    if (!district || !municipality) {
+    if (!district || !municipality || !street) {
       alert("Select required fields");
       return;
     }
@@ -189,6 +189,7 @@ const AddRoom = () => {
     const queries = [
       `${municipality}-${wardNo}, ${district}, Nepal`,
       `${municipality}, ${district}, Nepal`,
+      `${street},${municipality}, Nepal`
     ];
 
     try {

@@ -25,7 +25,6 @@ import Footer from './components/Footer'
 import SavedRooms from './pages/SavedRooms'
 import OwnerForm from './pages/OwnerForm'
 import ProfilePage from './pages/ProfilePage'
-import AdminInterested from './pages/admin/AdminInterested'
 function App() {
 
   return (
@@ -54,7 +53,6 @@ function App() {
         <Route path='users/:id' element={<UserDetail/>}/>
         <Route path='rooms' element={<RoomManagement/>}/>
         <Route path='rooms/:id' element={<RoomManagementDetails/>}/>
-        <Route path="interests" element={<AdminInterested />} />
       </Route> 
 
       // owner Routes
