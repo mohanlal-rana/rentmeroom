@@ -522,3 +522,25 @@ export const verifyRoom = async (req, res) => {
     });
   }
 };
+export const deleteRoomByAdmin=async(req,res)=>{
+    try {
+    const id = req.params.id;
+    const room = await Room.findById(id);
+    if (!room) {
+      return res
+        .status(404)
+        .json({ success: false, message: "no room is found" });
+    }
+    await Room.findByIdAndDelete(id);
+    res
+      .status(200)
+      .json({ success: true, message: "room deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting room:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error: Unable to delete room",
+      error: error.message,
+    });
+  }
+}

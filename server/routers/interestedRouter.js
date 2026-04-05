@@ -1,6 +1,7 @@
 import express from "express";
 import {
   authenticateUser,
+  authorizeAdmin,
   authorizeOwner,
 } from "../middlewares/authMiddleware.js";
 import {
@@ -9,6 +10,8 @@ import {
   markAsContacted,
   getAllInterestsForOwner,
   deleteInterest,
+  getAllInterestsForAdmin,
+  updateInterestStatus,
 } from "../controllers/interestedController.js";
 
 const router = express.Router();
@@ -38,5 +41,10 @@ router.put(
   authorizeOwner,
   markAsContacted
 );
+
+//admin
+router.get("/admin/interests", authenticateUser,authorizeAdmin, getAllInterestsForAdmin);
+router.patch("/admin/interests/:id", authenticateUser,authorizeAdmin, updateInterestStatus);
+
 
 export default router;

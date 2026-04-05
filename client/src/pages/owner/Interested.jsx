@@ -269,14 +269,21 @@ export default function Interested() {
                         )}
 
                         {/* DELETE */}
-                        <button
-                          onClick={() =>
-                            deleteInterest(i._id)
-                          }
-                          className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600"
-                        >
-                          Delete
-                        </button>
+                        {isContacted ? (
+                          <button
+                            onClick={() => deleteInterest(i._id)}
+                            className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600"
+                          >
+                            Delete
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="bg-gray-300 text-gray-500 px-3 py-1 rounded-lg cursor-not-allowed"
+                          >
+                            Delete Locked
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

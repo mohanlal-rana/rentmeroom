@@ -14,8 +14,11 @@ const interestedSchema = new mongoose.Schema(
       required: true,
     },
 
-    message: { type: String, trim: true },
-
+    status: {
+      type: String,
+      enum: ["pending", "contacted", "rejected"],
+      default: "pending",
+    },
   },
 
   { timestamps: true } // adds createdAt & updatedAt

@@ -9,15 +9,15 @@ export const createRoomSchema = z.object({
 
   address: z.object({
     country: z.string().min(2, "Country is required"),
-    province: z.string().optional(),
+    province: z.string().min(2, "Province is required"),
     district: z.string().min(2, "District is required"),
     municipality: z.string().min(2, "Municipality is required"),
     wardNo: z.coerce
       .number({ invalid_type_error: "Ward number must be a number" })
       .min(1, "Ward number must be at least 1"),
-    street: z.string().optional(),
-    houseNo: z.string().optional(),
-    landmark: z.string().optional(),
+    street: z.string().min(2,"street is required"),
+    houseNo: z.string().min(2, "houseNo is required"),
+    landmark: z.string().min(2, "landmark is required"),
   }),
 
   contact: z
@@ -27,9 +27,9 @@ export const createRoomSchema = z.object({
 
   description: z.string().min(10, "Description must be at least 10 characters"),
 
-  features: z.array(z.string()).optional().default([]),
+  features: z.array(z.string()).default([]),
 
-images: z.any().optional(),
+  images: z.array(z.any()).min(1, "At least one image is required"),
 
   location: z
     .object({
