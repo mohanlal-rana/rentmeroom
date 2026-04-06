@@ -49,7 +49,11 @@ const roomSchema = new mongoose.Schema(
       type: [String], // ← Much better than Array
       default: [],
     },
-
+    noOfRoom: {
+      type: Number,
+      required: true,
+      min: 1
+    },
     description: { type: String, required: true },
     isActive: { type: Boolean, default: true },
     isVerified: { type: Boolean, default: false },

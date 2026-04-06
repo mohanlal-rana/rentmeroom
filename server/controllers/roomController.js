@@ -184,7 +184,7 @@ export const getSavedRooms = async (req, res) => {
 //owner controller
 export const addRoom = async (req, res) => {
   try {
-    const { title, rent, address, location, contact, features, description } =
+    const { title, rent, noOfRoom, address, location, contact, features, description } =
       req.body;
 
     // 1️⃣ Assign roomLocation from parsed FormData
@@ -193,9 +193,9 @@ export const addRoom = async (req, res) => {
     // 2️⃣ Handle uploaded images
     const images = req.files
       ? req.files.map((file) => ({
-          url: `/uploads/${file.filename}`,
-          public_id: file.filename,
-        }))
+        url: `/uploads/${file.filename}`,
+        public_id: file.filename,
+      }))
       : [];
 
     // 3️⃣ Only try geocoding if location is missing or invalid
@@ -238,6 +238,12 @@ export const addRoom = async (req, res) => {
         roomLocation = null;
       }
     }
+    if (!noOfRoom || Number(noOfRoom) < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Number of rooms must be at least 1",
+      });
+    }
 
     // 4️⃣ Save Room
     const newRoom = new Room({
@@ -245,6 +251,7 @@ export const addRoom = async (req, res) => {
       owner: req.user._id,
       images,
       rent: parseInt(rent),
+      noOfRoom: Number(noOfRoom),
       address,
       location: roomLocation,
       contact,
@@ -260,6 +267,7 @@ export const addRoom = async (req, res) => {
       room: savedRoom,
     });
   } catch (error) {
+    console.log(error)
     console.error("Error adding room:", error);
     res.status(500).json({
       success: false,
@@ -330,37 +338,82 @@ export const getOwnerRoomById = async (req, res) => {
 export const updateRoom = async (req, res) => {
   try {
     const { id } = req.params;
+
     const room = await Room.findById(id);
 
-    if (!room)
-      return res
-        .status(404)
-        .json({ success: false, message: "Room not found" });
-    if (room.owner.toString() !== req.user._id.toString()) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Not authorized" });
+    // ================= VALIDATION =================
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Room not found",
+      });
     }
 
-    // ================= Update Fields =================
+    if (room.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized",
+      });
+    }
+
+    // ================= PARSE FORM DATA =================
+    if (req.body.address && typeof req.body.address === "string") {
+      req.body.address = JSON.parse(req.body.address);
+    }
+
+    if (req.body.location && typeof req.body.location === "string") {
+      req.body.location = JSON.parse(req.body.location);
+    }
+
+    if (
+      req.body.existingImages &&
+      typeof req.body.existingImages === "string"
+    ) {
+      req.body.existingImages = JSON.parse(req.body.existingImages);
+    }
+
+    // ================= UPDATE FIELDS =================
     room.title = req.body.title || room.title;
     room.rent = req.body.rent ? Number(req.body.rent) : room.rent;
     room.contact = req.body.contact || room.contact;
     room.description = req.body.description || room.description;
-    room.features = req.body.features || room.features;
+
+    // features (handle array properly)
+    if (req.body.features) {
+      room.features = Array.isArray(req.body.features)
+        ? req.body.features
+        : [req.body.features];
+    }
+
     room.address = req.body.address || room.address;
 
-    // ================= Update Location =================
-    if (req.body.location && req.body.location.coordinates) {
+    // ✅ noOfRoom FIX
+    if (req.body.noOfRoom) {
+      const rooms = Number(req.body.noOfRoom);
+      if (rooms < 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Number of rooms must be at least 1",
+        });
+      }
+      room.noOfRoom = rooms;
+    }
+
+    // ================= UPDATE LOCATION =================
+    if (
+      req.body.location &&
+      req.body.location.coordinates &&
+      req.body.location.coordinates.length === 2
+    ) {
       room.location = req.body.location;
     }
 
-    // ================= Update Images =================
+    // ================= UPDATE IMAGES =================
     let updatedImages = [];
 
-    // Take existing images sent from frontend
-    if (req.body.existingImages && Array.isArray(req.body.existingImages)) {
-      updatedImages = [...req.body.existingImages]; // <-- just take them
+    // Keep existing images
+    if (Array.isArray(req.body.existingImages)) {
+      updatedImages = [...req.body.existingImages];
     }
 
     // Add new uploaded images
@@ -374,16 +427,21 @@ export const updateRoom = async (req, res) => {
 
     room.images = updatedImages;
 
-    await room.save();
+    // ================= SAVE =================
+    const updatedRoom = await room.save();
 
     res.status(200).json({
       success: true,
       message: "Room updated successfully",
-      room,
+      room: updatedRoom,
     });
   } catch (error) {
     console.error("Update Error:", error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Server Error: Unable to update room",
+      error: error.message,
+    });
   }
 };
 
@@ -522,8 +580,8 @@ export const verifyRoom = async (req, res) => {
     });
   }
 };
-export const deleteRoomByAdmin=async(req,res)=>{
-    try {
+export const deleteRoomByAdmin = async (req, res) => {
+  try {
     const id = req.params.id;
     const room = await Room.findById(id);
     if (!room) {

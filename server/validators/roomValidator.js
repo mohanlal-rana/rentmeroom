@@ -29,7 +29,8 @@ export const createRoomSchema = z.object({
 
   features: z.array(z.string()).default([]),
 
-  images: z.array(z.any()).min(1, "At least one image is required"),
+  // images: z.array(z.any()).min(1, "At least one image is required"),
+  images: z.array(z.any()).optional(),
 
   location: z
     .object({

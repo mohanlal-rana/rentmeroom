@@ -51,6 +51,7 @@ const AddRoom = () => {
     contact: "",
     description: "",
     features: "",
+    noOfRoom: "1",
     address: {
       country: "Nepal",
       province: "",
@@ -108,8 +109,8 @@ const AddRoom = () => {
         setMunicipalities(
           d
             ? municipalityObj
-                .getMunicipalitiesByDistrict(d.id)
-                .map((m) => m.name)
+              .getMunicipalitiesByDistrict(d.id)
+              .map((m) => m.name)
             : [],
         );
         setWards([]);
@@ -237,6 +238,7 @@ const AddRoom = () => {
       fd.append("rent", form.rent);
       fd.append("contact", form.contact);
       fd.append("description", form.description);
+      fd.append("noOfRoom", Number(form.noOfRoom));
 
       // Send features as proper array
       form.features
@@ -263,6 +265,7 @@ const AddRoom = () => {
       });
       console.log(res);
       const data = await res.json();
+      console.log(data)
 
       if (!res.ok) {
         if (data.errors) {
@@ -318,6 +321,14 @@ const AddRoom = () => {
               error={fieldErrors.rent}
             />
           </div>
+          <Select
+            label="Number of Rooms"
+            name="noOfRoom"
+            value={form.noOfRoom}
+            onChange={handleChange}
+            options={[...Array(10)].map((_, i) => (i + 1).toString())}
+            error={fieldErrors.noOfRoom}
+          />
           <Input
             label="Contact Number"
             name="contact"
@@ -511,9 +522,8 @@ const Input = ({ label, error, ...props }) => (
     </label>
     <input
       {...props}
-      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#837ab6] outline-none transition-all ${
-        error ? "border-red-500 bg-red-50" : "border-gray-300"
-      }`}
+      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#837ab6] outline-none transition-all ${error ? "border-red-500 bg-red-50" : "border-gray-300"
+        }`}
     />
     {error && <p className="text-red-500 text-xs mt-1 font-medium">{error}</p>}
   </div>
@@ -527,9 +537,8 @@ const Textarea = ({ label, error, ...props }) => (
     <textarea
       {...props}
       rows="3"
-      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#837ab6] outline-none transition-all ${
-        error ? "border-red-500 bg-red-50" : "border-gray-300"
-      }`}
+      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#837ab6] outline-none transition-all ${error ? "border-red-500 bg-red-50" : "border-gray-300"
+        }`}
     />
     {error && <p className="text-red-500 text-xs mt-1 font-medium">{error}</p>}
   </div>
@@ -543,9 +552,8 @@ const Select = ({ label, options, disabled, error, ...props }) => (
     <select
       {...props}
       disabled={disabled}
-      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#837ab6] outline-none bg-white transition-all disabled:bg-gray-100 ${
-        error ? "border-red-500 bg-red-50" : "border-gray-300"
-      }`}
+      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#837ab6] outline-none bg-white transition-all disabled:bg-gray-100 ${error ? "border-red-500 bg-red-50" : "border-gray-300"
+        }`}
     >
       <option value="">Select {label}</option>
       {options.map((o) => (
