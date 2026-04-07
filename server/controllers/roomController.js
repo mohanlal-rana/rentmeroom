@@ -445,6 +445,47 @@ export const updateRoom = async (req, res) => {
   }
 };
 
+export const paymentslip = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Check if file exists (provided by Multer)
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded. Please select an image."
+      });
+    }
+
+    // 2. Construct the file URL/Path
+    // If you are serving static files from '/uploads', store the path
+    const slipUrl = `/uploads/${req.file.filename}`;
+
+    // 3. Update the Room document
+    const updatedRoom = await Room.findByIdAndUpdate(
+      id,
+      {
+        paymentSlip: {
+          url: slipUrl,
+          uploadedAt: new Date()
+        }
+      },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedRoom) {
+      return res.status(404).json({ success: false, message: "Room not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Payment slip uploaded successfully!",
+      room: updatedRoom,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 export const toggleRoomStatus = async (req, res) => {
   try {
     const { id } = req.params;

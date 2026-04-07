@@ -10,6 +10,7 @@ import {
   getRoom,
   getRoomById,
   getSavedRooms,
+  paymentslip,
   saveRoom,
   searchRooms,
   toggleRoomStatus,
@@ -65,6 +66,7 @@ router.put(
   updateRoom
 );
 
+router.put("/:id/uplaod/paymentslip",authenticateUser,authorizeOwner,upload.single("slip"),paymentslip)
 router.put("/:id/roomstatus", authenticateUser, authorizeOwner, toggleRoomStatus);
 router.delete("/:id", authenticateUser, authorizeOwner, deleteRoom);
 

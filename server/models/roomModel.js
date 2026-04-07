@@ -55,6 +55,10 @@ const roomSchema = new mongoose.Schema(
       min: 1
     },
     description: { type: String, required: true },
+    paymentSlip: {
+      url: { type: String },
+      public_id: { type: String },
+    },
     isActive: { type: Boolean, default: true },
     isVerified: { type: Boolean, default: false },
   },

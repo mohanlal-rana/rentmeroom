@@ -12,6 +12,8 @@ const OwnerRoomDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [slip, setSlip] = useState(null);
+  const [uploadingSlip, setUploadingSlip] = useState(false);
 
   /* ---------------- Fetch Room ---------------- */
   useEffect(() => {
@@ -79,6 +81,35 @@ const OwnerRoomDetail = () => {
     );
   }
 
+  const handleSlipUpload = async () => {
+    if (!slip) return alert("Please select a file first");
+
+    const formData = new FormData();
+    formData.append("slip", slip);
+
+    try {
+      setUploadingSlip(true);
+      const res = await fetch(`${API}/api/rooms/${id}/uplaod/paymentslip`, {
+        method: "PUT",
+        body: formData,
+        // Note: Don't set Content-Type header manually when using FormData
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert("Payment slip uploaded!");
+        setRoom(data.room); // Update UI with new data
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setUploadingSlip(false);
+    }
+  };
+
   const formattedAddress =
     typeof room.address === "string"
       ? room.address
@@ -118,9 +149,8 @@ const OwnerRoomDetail = () => {
             </p>
 
             <p
-              className={`mt-2 font-semibold ${
-                room.isVerified ? "text-green-600" : "text-yellow-600"
-              }`}
+              className={`mt-2 font-semibold ${room.isVerified ? "text-green-600" : "text-yellow-600"
+                }`}
             >
               {room.isVerified ? "✔ Verified" : "⏳ Pending Verification"}
             </p>
@@ -224,6 +254,40 @@ const OwnerRoomDetail = () => {
             >
               {deleting ? "Deleting..." : "🗑 Delete Room"}
             </button>
+          </div>
+          {/* Payment Slip Upload */}
+          <div className="bg-white rounded-2xl shadow p-6">
+            <h3 className="text-lg font-semibold text-[#837ab6] mb-3">
+              Payment Slip
+            </h3>
+          
+            {room.paymentSlip?.url ? (
+              <div className="space-y-2">
+                <img
+                  src={`${API}${room.paymentSlip.url}`}
+                  alt="Payment Slip"
+                  onClick={() => window.open(`${API}${room.paymentSlip.url}`, "_blank")}
+                  className="w-full h-32 object-cover rounded-lg border"
+                />
+                <p className="text-xs text-green-600 font-medium text-center">Slip Uploaded ✓</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setSlip(e.target.files[0])}
+                  className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#f6f4fa] file:text-[#837ab6] hover:file:bg-[#ece9f5]"
+                />
+                <button
+                  onClick={handleSlipUpload}
+                  disabled={uploadingSlip || !slip}
+                  className="w-full bg-[#9d85b6] text-white py-2 rounded-xl text-sm font-semibold disabled:opacity-50"
+                >
+                  {uploadingSlip ? "Uploading..." : "Upload Slip"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
