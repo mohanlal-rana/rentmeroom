@@ -1,6 +1,7 @@
 import express from "express";
 import {
   addRoom,
+  decreaseAvialableRoom,
   deleteRoom,
   deleteRoomByAdmin,
   getAdminRoomById,
@@ -10,6 +11,7 @@ import {
   getRoom,
   getRoomById,
   getSavedRooms,
+  increaseAvialableRoom,
   paymentslip,
   saveRoom,
   searchRooms,
@@ -68,6 +70,8 @@ router.put(
 
 router.put("/:id/uplaod/paymentslip",authenticateUser,authorizeOwner,upload.single("slip"),paymentslip)
 router.put("/:id/roomstatus", authenticateUser, authorizeOwner, toggleRoomStatus);
+router.put("/:id/avialableroom/increase",authenticateUser,authorizeOwner,increaseAvialableRoom),
+router.put("/:id/avialableroom/decrease",authenticateUser,authorizeOwner,decreaseAvialableRoom),
 router.delete("/:id", authenticateUser, authorizeOwner, deleteRoom);
 
 //admin route

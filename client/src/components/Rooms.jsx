@@ -13,7 +13,7 @@ export default function Rooms() {
   const [savedRooms, setSavedRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const {API} = useAuth();
+  const { API } = useAuth();
 
   useEffect(() => {
     // Fetch all rooms
@@ -149,11 +149,19 @@ export default function Rooms() {
                   .filter(Boolean)
                   .join(", ")}
               </p>
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-lg font-bold text-[#9d85b6]">
+                  Rs. {room.rent} / month
+                </p>
 
-              <p className="text-lg font-bold text-[#9d85b6] mt-2">
-                Rs. {room.rent} / month
-              </p>
-
+                {/* AVAILABILITY BADGE */}
+                <span className={`text-xs font-bold px-2 py-1 rounded ${room.avilableRoom === 1
+                    ? "bg-red-100 text-red-600 animate-pulse"
+                    : "bg-green-100 text-green-600"
+                  }`}>
+                  {room.avilableRoom} {room.avilableRoom === 1 ? 'Room' : 'Rooms'} Left
+                </span>
+              </div>
               {room.features?.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
                   {room.features.map((feature, index) => (

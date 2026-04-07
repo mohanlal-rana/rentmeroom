@@ -64,7 +64,18 @@ const OwnerRoomDetail = () => {
       setDeleting(false);
     }
   };
+  const openInGoogleMaps = () => {
+    const lat = room?.location?.coordinates?.[1];
+    const lng = room?.location?.coordinates?.[0];
 
+    if (!lat || !lng) {
+      alert("Location not available");
+      return;
+    }
+
+    const url = `https://www.google.com/maps?q=${lat},${lng}`;
+    window.open(url, "_blank");
+  };
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-[#837ab6] text-lg">
@@ -107,6 +118,22 @@ const OwnerRoomDetail = () => {
       alert(err.message);
     } finally {
       setUploadingSlip(false);
+    }
+  };
+  const updateAvailability = async (action) => {
+    try {
+      const endpoint = action === "increase" ? "increase" : "decrease";
+      const res = await fetch(`${API}/api/rooms/${id}/avialableroom/${endpoint}`, {
+        method: "PUT",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      setRoom(data.room); // Refresh UI
+    } catch (err) {
+      alert(err.message);
     }
   };
 
@@ -236,8 +263,49 @@ const OwnerRoomDetail = () => {
               Latitude: {room.location?.coordinates?.[1]} <br />
               Longitude: {room.location?.coordinates?.[0]}
             </p>
+            <button
+              onClick={openInGoogleMaps}
+              className="w-full bg-green-500 text-white py-2 rounded-xl hover:bg-green-600 transition font-semibold"
+            >
+              📍 Open in Google Maps
+            </button>
           </div>
+          {/* Availability Management */}
+          <div className="bg-white rounded-2xl shadow p-6">
+            <h3 className="text-lg font-semibold text-[#837ab6] mb-4">
+              Manage Availability
+            </h3>
 
+            <div className="flex items-center justify-between bg-[#f6f4fa] p-4 rounded-xl">
+              <div>
+                <p className="text-sm text-gray-500">Available Rooms</p>
+                <p className="text-2xl font-bold text-[#837ab6]">
+                  {room.avilableRoom} <span className="text-sm font-normal text-gray-400">/ {room.noOfRoom}</span>
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => updateAvailability("decrease")}
+                  disabled={room.avilableRoom <= 0}
+                  className="w-10 h-10 flex items-center justify-center bg-red-100 text-red-600 rounded-lg hover:bg-red-200 disabled:opacity-30 transition font-bold text-xl"
+                >
+                  −
+                </button>
+                <button
+                  onClick={() => updateAvailability("increase")}
+                  disabled={room.avilableRoom >= room.noOfRoom}
+                  className="w-10 h-10 flex items-center justify-center bg-green-100 text-green-600 rounded-lg hover:bg-green-200 disabled:opacity-30 transition font-bold text-xl"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <p className="text-[10px] text-gray-400 mt-2 italic">
+              * Decrease availability when a room is rented out.
+            </p>
+          </div>
           {/* Actions */}
           <div className="bg-white rounded-2xl shadow p-6 space-y-3">
             <button
@@ -260,7 +328,7 @@ const OwnerRoomDetail = () => {
             <h3 className="text-lg font-semibold text-[#837ab6] mb-3">
               Payment Slip
             </h3>
-          
+
             {room.paymentSlip?.url ? (
               <div className="space-y-2">
                 <img

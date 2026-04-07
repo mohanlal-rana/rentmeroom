@@ -114,14 +114,14 @@ export default function RoomManagementDetails() {
 
   const formattedAddress = room.address
     ? [
-        room.address.wardNo ? `Ward ${room.address.wardNo}` : null,
-        room.address.municipality,
-        room.address.district,
-        room.address.province,
-        room.address.country,
-      ]
-        .filter(Boolean)
-        .join(", ")
+      room.address.wardNo ? `Ward ${room.address.wardNo}` : null,
+      room.address.municipality,
+      room.address.district,
+      room.address.province,
+      room.address.country,
+    ]
+      .filter(Boolean)
+      .join(", ")
     : "N/A";
 
   /* ---------------- UI ---------------- */
@@ -154,16 +154,28 @@ export default function RoomManagementDetails() {
               <HiLocationMarker className="text-[#837ab6]" />
               {formattedAddress}
             </p>
-
+            <div className="text-right">
+              <div className="bg-[#f6f4fa] px-3 py-1 rounded-lg border border-[#837ab6] mb-1">
+                <span className="text-xs text-gray-500 block">Total Capacity</span>
+                <span className="font-bold text-[#837ab6]">{room.noOfRoom} Rooms</span>
+              </div>
+              <div className={`px-3 py-1 rounded-lg border ${room.avilableRoom > 0 ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
+                }`}>
+                <span className="text-xs text-gray-500 block">Currently Available</span>
+                <span className={`font-bold ${room.avilableRoom > 0 ? "text-green-600" : "text-red-600"
+                  }`}>
+                  {room.avilableRoom} {room.avilableRoom === 1 ? 'Room' : 'Rooms'}
+                </span>
+              </div>
+            </div>
             <p className="text-xl font-bold text-[#9d85b6] mt-3">
               Rs. {room.rent} / month
             </p>
 
             <div className="mt-2">
               <p
-                className={`font-semibold ${
-                  room.isVerified ? "text-green-600" : "text-red-500"
-                }`}
+                className={`font-semibold ${room.isVerified ? "text-green-600" : "text-red-500"
+                  }`}
               >
                 {room.isVerified ? "✔ Verified" : "✖ Not Verified"}
               </p>
@@ -296,6 +308,41 @@ export default function RoomManagementDetails() {
               🗑 Delete Room
             </button>
           </div>
+
+          <div className="bg-white rounded-2xl shadow p-6">
+            <h3 className="text-lg font-semibold text-[#837ab6] mb-3">
+              Payment Slip
+            </h3>
+
+            {room.paymentSlip?.url ? (
+              <div className="space-y-3">
+                <div className="relative group cursor-pointer">
+                  <img
+                    src={`${API}${room.paymentSlip.url}`}
+                    alt="Payment Slip"
+                    onClick={() => window.open(`${API}${room.paymentSlip.url}`, "_blank")}
+                    className="w-full h-40 object-cover rounded-lg border hover:opacity-90 transition"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/20 rounded-lg pointer-events-none">
+                    <span className="bg-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                      Click to Expand
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center gap-1 text-green-600">
+                  <span className="text-xs font-bold uppercase tracking-wider">Verification Document Uploaded ✓</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                <p className="text-gray-400 text-sm font-medium italic">
+                  No payment slip uploaded
+                </p>
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
     </div>

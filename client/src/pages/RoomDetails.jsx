@@ -159,13 +159,19 @@ export default function RoomDetails() {
               .join(", ")}
           </p>
 
-          <p className="flex items-center text-gray-700">
-            <HiOutlineCash className="w-5 h-5 text-[#837ab6] mr-2" />
-            <span className="text-lg font-bold text-[#9d85b6]">
-              Rs. {room.rent} / month
-            </span>
-          </p>
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-lg font-bold text-[#9d85b6]">
+                  Rs. {room.rent} / month
+                </p>
 
+                {/* AVAILABILITY BADGE */}
+                <span className={`text-xs font-bold px-2 py-1 rounded ${room.avilableRoom === 1
+                    ? "bg-red-100 text-red-600 animate-pulse"
+                    : "bg-green-100 text-green-600"
+                  }`}>
+                  {room.avilableRoom} {room.avilableRoom === 1 ? 'Room' : 'Rooms'} Left
+                </span>
+              </div>
           {/* Features */}
           {room.features.length > 0 && (
             <div className="flex flex-wrap gap-3 mt-2">

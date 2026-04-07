@@ -7,7 +7,7 @@ import User from "../models/userModel.js";
 //public controller
 export const getRoom = async (req, res) => {
   try {
-    const rooms = await Room.find({ isVerified: true, isActive: true }).select("-contact");
+    const rooms = await Room.find({ isVerified: true, isActive: true,avilableRoom: { $gte: 1 } }).select("-contact");
     // console.log(rooms);
     if (rooms.length == 0) {
       return res
@@ -32,7 +32,7 @@ export const getRoom = async (req, res) => {
 export const getRoomById = async (req, res) => {
   try {
     const id = req.params.id;
-    const room = await Room.findOne({ _id: id, isVerified: true, isActive: true }).select("-contact");
+    const room = await Room.findOne({ _id: id, isVerified: true, isActive: true,avilableRoom: { $gte: 1 } }).select("-contact");
     if (!room) {
       return res
         .status(404)
@@ -244,14 +244,22 @@ export const addRoom = async (req, res) => {
         message: "Number of rooms must be at least 1",
       });
     }
+    const roomCount = parseInt(noOfRoom);
 
+    if (isNaN(roomCount) || roomCount < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Number of rooms must be a valid number and at least 1",
+      });
+    }
     // 4️⃣ Save Room
     const newRoom = new Room({
       title,
       owner: req.user._id,
       images,
       rent: parseInt(rent),
-      noOfRoom: Number(noOfRoom),
+      noOfRoom: roomCount,
+      avilableRoom: roomCount,
       address,
       location: roomLocation,
       contact,
@@ -513,6 +521,54 @@ export const toggleRoomStatus = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const increaseAvialableRoom = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const room = await Room.findById(id);
+
+    if (!room) return res.status(404).json({ success: false, message: "Room not found" });
+
+    // Logic: Cannot exceed the total number of rooms
+    if (room.avilableRoom >= room.noOfRoom) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot increase. Maximum limit of ${room.noOfRoom} reached.`
+      });
+    }
+
+    room.avilableRoom += 1;
+    await room.save();
+
+    res.status(200).json({ success: true, room });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const decreaseAvialableRoom = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const room = await Room.findById(id);
+
+    if (!room) return res.status(404).json({ success: false, message: "Room not found" });
+
+    // Logic: Cannot go below 0
+    if (room.avilableRoom <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No rooms available to decrease."
+      });
+    }
+
+    room.avilableRoom -= 1;
+    await room.save();
+
+    res.status(200).json({ success: true, room });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

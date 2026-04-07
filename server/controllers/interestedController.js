@@ -13,7 +13,12 @@ export const markInterested = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid room ID" });
     }
-
+    if (!room.avilableRoom || room.avilableRoom < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Sorry, no rooms are currently available for this listing.",
+      });
+    }
     const room = await Room.findById(roomId);
     if (!room || !room.isVerified) {
       return res
@@ -265,29 +270,29 @@ export const getAllInterestsForAdmin = async (req, res) => {
 
       user: i.user
         ? {
-            _id: i.user._id,
-            name: i.user.name,
-            email: i.user.email,
-          }
+          _id: i.user._id,
+          name: i.user.name,
+          email: i.user.email,
+        }
         : null,
 
       room: i.room
         ? {
-            _id: i.room._id, // ✅ IMPORTANT (for navigation)
-            title: i.room.title,
-            rent: i.room.rent,
-            address: i.room.address,
+          _id: i.room._id, // ✅ IMPORTANT (for navigation)
+          title: i.room.title,
+          rent: i.room.rent,
+          address: i.room.address,
 
-            contact: i.status === "contacted" ? i.room.contact : null,
+          contact: i.status === "contacted" ? i.room.contact : null,
 
-            owner: i.room.owner
-              ? {
-                  _id: i.room.owner._id,
-                  name: i.room.owner.name,
-                  email: i.room.owner.email,
-                }
-              : null,
-          }
+          owner: i.room.owner
+            ? {
+              _id: i.room.owner._id,
+              name: i.room.owner.name,
+              email: i.room.owner.email,
+            }
+            : null,
+        }
         : null,
     }));
 

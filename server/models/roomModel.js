@@ -54,6 +54,9 @@ const roomSchema = new mongoose.Schema(
       required: true,
       min: 1
     },
+    avilableRoom:{
+      type:Number,
+    },
     description: { type: String, required: true },
     paymentSlip: {
       url: { type: String },
