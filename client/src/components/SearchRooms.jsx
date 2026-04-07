@@ -26,6 +26,8 @@ export default function SearchRooms() {
     "kitchen",
     "attached bathroom",
     "water 24/7",
+    "Balcony",
+    "Furnished"
   ];
 
   /* ================= HANDLE INPUT ================= */

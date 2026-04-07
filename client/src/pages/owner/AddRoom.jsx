@@ -50,7 +50,7 @@ const AddRoom = () => {
     rent: "",
     contact: "",
     description: "",
-    features: "",
+    features: [],
     noOfRoom: "1",
     address: {
       country: "Nepal",
@@ -63,6 +63,15 @@ const AddRoom = () => {
       landmark: "",
     },
   });
+  const featureOptions = [
+    "WiFi",
+    "Parking",
+    "Kitchen",
+    "Attached Bathroom",
+    "Water 24/7",
+    "Balcony",
+    "Furnished"
+  ];
 
   // Clean up object URLs to prevent memory leaks
   useEffect(
@@ -127,6 +136,16 @@ const AddRoom = () => {
     }
 
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleFeatureToggle = (feature) => {
+    setForm((prev) => {
+      const currentFeatures = prev.features;
+      const newFeatures = currentFeatures.includes(feature)
+        ? currentFeatures.filter((f) => f !== feature) // Remove if exists
+        : [...currentFeatures, feature]; // Add if not exists
+
+      return { ...prev, features: newFeatures };
+    });
   };
 
   const handleImageChange = (e) => {
@@ -241,11 +260,7 @@ const AddRoom = () => {
       fd.append("noOfRoom", Number(form.noOfRoom));
 
       // Send features as proper array
-      form.features
-        .split(",")
-        .map((f) => f.trim())
-        .filter(Boolean)
-        .forEach((f) => fd.append("features", f));
+      form.features.forEach((f) => fd.append("features", f));
 
       fd.append(
         "address",
@@ -461,14 +476,34 @@ const AddRoom = () => {
             onChange={handleChange}
             error={fieldErrors.description}
           />
-          <Textarea
-            label="Features (comma separated)"
-            name="features"
-            value={form.features}
-            placeholder="WiFi, Parking, Balcony"
-            onChange={handleChange}
-            error={fieldErrors.features}
-          />
+          {/* Features Checkboxes */}
+          <div className="w-full">
+            <label className="block text-sm font-semibold text-gray-600 mb-3">
+              Room Features
+            </label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
+              {featureOptions.map((feature) => (
+                <label
+                  key={feature}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${form.features.includes(feature)
+                    ? "bg-[#837ab6] border-[#837ab6] text-white shadow-sm"
+                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-100"
+                    }`}
+                >
+                  <input
+                    type="checkbox"
+                    className="hidden" // We hide the actual box for a cleaner UI
+                    checked={form.features.includes(feature)}
+                    onChange={() => handleFeatureToggle(feature)}
+                  />
+                  <span className="text-sm font-medium">{feature}</span>
+                </label>
+              ))}
+            </div>
+            {fieldErrors.features && (
+              <p className="text-red-500 text-xs mt-1 font-medium">{fieldErrors.features}</p>
+            )}
+          </div>
 
           {/* Images */}
           <div>

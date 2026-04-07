@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FaFacebook, FaInstagram, FaTwitter, FaHome } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaTwitter, FaHome, FaWhatsapp, FaPhoneAlt } from "react-icons/fa";
 
 export default function Footer() {
   return (
@@ -23,29 +23,34 @@ export default function Footer() {
         {/* Quick Links */}
         <div>
           <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-
           <div className="flex flex-col gap-2 text-white/80">
-            <Link to="/" className="hover:text-white transition">
-              Home
-            </Link>
-
-            <Link to="/" className="hover:text-white transition">
-              Rooms
-            </Link>
-
-            <Link to="/search" className="hover:text-white transition">
-              Search
-            </Link>
+            <Link to="/" className="hover:text-white transition">Home</Link>
+            <Link to="/rooms" className="hover:text-white transition">Rooms</Link>
+            <Link to="/search" className="hover:text-white transition">Search</Link>
           </div>
         </div>
 
-        {/* Social Media */}
+        {/* Contact & Social Media */}
         <div>
-          <h3 className="text-lg font-semibold mb-4">Follow Us</h3>
+          <h3 className="text-lg font-semibold mb-4">Get in Touch</h3>
+
+          {/* Contact Number */}
+          <div className="flex items-center gap-3 text-white/80 mb-6 hover:text-white transition">
+            <FaPhoneAlt className="text-xl" />
+            <a href="tel:+9779821696631" className="text-sm font-medium tracking-wide">
+              +977 9821696631
+            </a>
+          </div>
 
           <div className="flex gap-4 text-2xl">
-            <a href="#" className="hover:text-[#cc8db3] transition">
+            {/* Facebook */}
+            <a href="https://www.facebook.com/share/1FVi4mNina/" target="_blank" rel="noreferrer" className="hover:text-[#cc8db3] transition">
               <FaFacebook />
+            </a>
+
+            {/* WhatsApp */}
+            <a href="https://wa.me/9779821696631" target="_blank" rel="noreferrer" className="hover:text-[#25D366] transition">
+              <FaWhatsapp />
             </a>
 
             <a href="#" className="hover:text-[#cc8db3] transition">
