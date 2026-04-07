@@ -387,17 +387,17 @@ export const updateRoom = async (req, res) => {
 
     room.address = req.body.address || room.address;
 
-    // ✅ noOfRoom FIX
-    if (req.body.noOfRoom) {
-      const rooms = Number(req.body.noOfRoom);
-      if (rooms < 1) {
-        return res.status(400).json({
-          success: false,
-          message: "Number of rooms must be at least 1",
-        });
-      }
-      room.noOfRoom = rooms;
-    }
+    // // ✅ noOfRoom FIX
+    // if (req.body.noOfRoom) {
+    //   const rooms = Number(req.body.noOfRoom);
+    //   if (rooms < 1) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Number of rooms must be at least 1",
+    //     });
+    //   }
+    //   room.noOfRoom = rooms;
+    // }
 
     // ================= UPDATE LOCATION =================
     if (

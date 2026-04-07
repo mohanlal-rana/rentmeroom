@@ -52,7 +52,6 @@ const EditRoom = () => {
     contact: "",
     description: "",
     features: "",
-    noOfRoom: "",
     address: {
       country: "Nepal",
       province: "",
@@ -79,7 +78,6 @@ const EditRoom = () => {
           features: Array.isArray(r.features)
             ? r.features.join(", ")
             : r.features || "",
-          noOfRoom: r.noOfRoom ? String(r.noOfRoom) : "1",
           address: r.address || form.address,
         });
         setExistingImages(r.images || []);
@@ -276,7 +274,6 @@ const EditRoom = () => {
       fd.append("rent", form.rent);
       fd.append("contact", form.contact);
       fd.append("description", form.description);
-      fd.append("noOfRoom", Number(form.noOfRoom));
 
       form.features
         .split(",")
@@ -347,14 +344,6 @@ const EditRoom = () => {
               error={fieldErrors.rent}
             />
           </div>
-          <Select
-            label="Number of Rooms"
-            name="noOfRoom"
-            value={form.noOfRoom}
-            onChange={handleChange}
-            options={[...Array(10)].map((_, i) => (i + 1).toString())}
-            error={fieldErrors.noOfRoom}
-          />
           <Input
             label="Contact Number"
             name="contact"
