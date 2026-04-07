@@ -326,7 +326,7 @@ const OwnerRoomDetail = () => {
           {/* Payment Slip Upload */}
           <div className="bg-white rounded-2xl shadow p-6">
             <h3 className="text-lg font-semibold text-[#837ab6] mb-3">
-              Payment Slip
+              Payment Slip <span>Pay Rs {500*room.noOfRoom}</span>
             </h3>
 
             {room.paymentSlip?.url ? (
