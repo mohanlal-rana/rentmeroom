@@ -92,8 +92,8 @@ export default function OwnerForm() {
         throw new Error(result.message || "Something went wrong");
       }
 
-      alert("Success! You are now an Owner.");
-      navigate("/owner/dashboard");
+      alert("your owner form is under review.");
+      navigate("/");
     } catch (err) {
       setError(err.message);
     } finally {
