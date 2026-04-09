@@ -2,15 +2,19 @@ import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "path";
+import { createServer } from "http";
+
 import CONNECT_DB from "./utils/db.js";
 import authRouter from "./routers/authRouter.js";
 import userRouter from "./routers/userRouter.js";
 import roomRouter from "./routers/roomRouter.js"
 import interestedRouter from "./routers/interestedRouter.js"
 import errorMiddleware from "./middlewares/errorMiddleware.js";
-import path from "path";
 import adminRoutes from "./routers/adminRouter.js";
 import geocodeRouter from "./routers/geocodeRouter.js";
+import chatRouter from "./routers/chatRouter.js"
+import { initSocket } from "./utils/socket.js";
 
 dotenv.config();
 const app = express();
@@ -45,9 +49,14 @@ app.use("/api/rooms", roomRouter);
 app.use("/api/interested", interestedRouter);
 app.use("/api/admin", adminRoutes);
 app.use("/api/geocode", geocodeRouter);
+app.use("/api/chat",chatRouter)
 app.use(errorMiddleware);
+
+const server = createServer(app);
+initSocket(server, allowedOrigins);
+
 CONNECT_DB().then(() => {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });
 });

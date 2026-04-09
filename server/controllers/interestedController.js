@@ -3,6 +3,8 @@ import Room from "../models/roomModel.js";
 import mongoose from "mongoose";
 import User from "../models/userModel.js";
 import { sendInterestConfirmedMailToUser, sendInterestMailToOwner } from "../utils/emailEvents.js";
+import Chat from "../models/Chat.js";
+import Message from "../models/Message.js";
 
 // User marks interest
 export const markInterested = async (req, res) => {
@@ -132,47 +134,60 @@ export const markAsContacted = async (req, res) => {
     const { interestId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(interestId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid interest ID" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid interest ID",
+      });
     }
 
-    const interest = await Interested.findById(interestId)
-      .populate("room", "owner title")
-      .populate("user", "email name"); // 👈 VERY IMPORTANT
+    const interest = await Interested.findById(interestId).populate(
+      "room",
+      "owner title",
+    );
 
     if (!interest) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Interest not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Interest not found",
+      });
     }
 
+    // 🔐 Only room owner can mark as contacted
     if (interest.room.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: "Unauthorized" });
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
     }
 
+    // Update status to contacted
     interest.status = "contacted";
     await interest.save();
 
-    const owner = await User.findById(req.user._id);
+    // ✅ Create chat if it doesn't exist
+    let chat = await Chat.findOne({ interestId: interestId });
+    if (!chat) {
+      chat = await Chat.create({
+        interestId: interestId,
+        participants: [interest.user, interest.room.owner]
+      });
+      console.log(`Created new chat for interest ${interestId}`);
+    }
 
-    await sendInterestConfirmedMailToUser(
-      interest.user.email,
-      interest.user.name,
-      interest.room.title,
-      owner.name
-    );
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "Interest marked as contacted",
-      interest,
+      message: "Interest marked as contacted and chat created",
+      data: {
+        interest,
+        chat
+      }
     });
   } catch (error) {
-    console.error("Error marking interest as contacted:", error);
-    res.status(500).json({
+    console.error("Error marking as contacted:", error);
+
+    return res.status(500).json({
       success: false,
-      message: "Server error: Unable to update interest",
+      message: "Server error: Unable to mark as contacted",
     });
   }
 };
@@ -253,12 +268,22 @@ export const deleteInterest = async (req, res) => {
       });
     }
 
-    // ✅ FIXED HERE
+    // ✅ Delete associated chat and messages
+    const chat = await Chat.findOne({ interestId: interestId });
+    if (chat) {
+      // Delete all messages in this chat
+      await Message.deleteMany({ chatId: chat._id });
+      // Delete the chat document
+      await Chat.findByIdAndDelete(chat._id);
+      console.log(`Deleted chat ${chat._id} and its messages for interest ${interestId}`);
+    }
+
+    // ✅ Delete the interest
     await Interested.findByIdAndDelete(interestId);
 
     return res.status(200).json({
       success: true,
-      message: "Interest deleted successfully",
+      message: "Interest and associated chat deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting interest:", error);
@@ -354,5 +379,32 @@ export const updateInterestStatus = async (req, res) => {
       success: false,
       message: "Status update failed",
     });
+  }
+};
+export const getInterestById = async (req, res) => {
+  try {
+    const { interestId } = req.params;
+    
+    const interest = await Interested.findById(interestId)
+      .populate("user", "name email _id")
+      .populate("room", "title contact location description owner");
+      
+    if (!interest) {
+      return res.status(404).json({ message: "Interest not found" });
+    }
+    
+    // Check authorization
+    const isInterestedUser = interest.user._id.toString() === req.user._id;
+    const isRoomOwner = interest.room && interest.room.owner && interest.room.owner.toString() === req.user._id;
+    const isAdmin = req.user.role === 'admin';
+    
+    if (!isInterestedUser && !isRoomOwner && !isAdmin) {
+      return res.status(403).json({ message: "Not authorized to view this interest" });
+    }
+    
+    res.json({ interest });
+  } catch (err) {
+    console.error("Error in getInterestById:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };

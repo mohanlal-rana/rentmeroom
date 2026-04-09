@@ -12,6 +12,7 @@ import {
   deleteInterest,
   getAllInterestsForAdmin,
   updateInterestStatus,
+  getInterestById,  // Add this import
 } from "../controllers/interestedController.js";
 
 const router = express.Router();
@@ -21,8 +22,6 @@ router.get("/", authenticateUser, getInterestedRooms);
 router.post("/", authenticateUser, markInterested);
 
 // Owner routes
-
-// Owner: see all interests for their rooms
 router.get(
   "/owner/interests",
   authenticateUser,
@@ -45,6 +44,9 @@ router.put(
 //admin
 router.get("/admin/interests", authenticateUser,authorizeAdmin, getAllInterestsForAdmin);
 router.patch("/admin/interests/:id", authenticateUser,authorizeAdmin, updateInterestStatus);
+
+// Get single interest by ID (for chat)
+router.get("/:interestId", authenticateUser, getInterestById);
 
 
 export default router;

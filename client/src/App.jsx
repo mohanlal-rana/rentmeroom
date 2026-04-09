@@ -25,6 +25,8 @@ import Footer from './components/Footer'
 import SavedRooms from './pages/SavedRooms'
 import OwnerForm from './pages/OwnerForm'
 import ProfilePage from './pages/ProfilePage'
+import ChatPage from './pages/ChatPage'
+import OwnerChatPage from './pages/owner/OwnerChatPage'
 function App() {
 
   return (
@@ -40,6 +42,7 @@ function App() {
       <Route path="/search" element={<SearchRooms />} />
       <Route path="/owner-form" element={<OwnerForm/>}/>
       <Route path="/myprofile" element={<ProfilePage/>}/>
+      <Route path='/chat/:interestId' element={<ChatPage/>}/>
       
 
       // user Routes
@@ -64,6 +67,7 @@ function App() {
         <Route path='rooms/:id' element={<OwnerRoomDetail/>}/>
         <Route path='rooms/edit/:id' element={<EditRoom/>}/>
         <Route path='interested' element={<Interested/>}/>
+        <Route path="/owner/chat/:interestId" element={<OwnerChatPage />} />
       </Route>
 
      </Routes>
