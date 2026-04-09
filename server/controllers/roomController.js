@@ -1,13 +1,14 @@
 import axios from "axios";
 import Room from "../models/roomModel.js";
 import buildAddressString from "../utils/buildAddressString.js";
-import mongoose from "mongoose";
 import User from "../models/userModel.js";
+import Interested from "../models/interestedMOdel.js";
+import { sendOwnerRequestToAdmin, sendRoomVerifiedMail } from "../utils/emailEvents.js";
 
 //public controller
 export const getRoom = async (req, res) => {
   try {
-    const rooms = await Room.find({ isVerified: true, isActive: true,avilableRoom: { $gte: 1 } }).select("-contact");
+    const rooms = await Room.find({ isVerified: true, isActive: true, avilableRoom: { $gte: 1 } }).select("-contact");
     // console.log(rooms);
     if (rooms.length == 0) {
       return res
@@ -32,7 +33,7 @@ export const getRoom = async (req, res) => {
 export const getRoomById = async (req, res) => {
   try {
     const id = req.params.id;
-    const room = await Room.findOne({ _id: id, isVerified: true, isActive: true,avilableRoom: { $gte: 1 } }).select("-contact");
+    const room = await Room.findOne({ _id: id, isVerified: true, isActive: true, avilableRoom: { $gte: 1 } }).select("-contact");
     if (!room) {
       return res
         .status(404)
@@ -268,6 +269,12 @@ export const addRoom = async (req, res) => {
     });
 
     const savedRoom = await newRoom.save();
+
+    const admin = await User.findOne({ role: "admin" });
+
+    if (admin) {
+      await sendOwnerRequestToAdmin(admin.email, newRoom.title);
+    }
 
     res.status(201).json({
       success: true,
@@ -566,6 +573,10 @@ export const decreaseAvialableRoom = async (req, res) => {
     room.avilableRoom -= 1;
     await room.save();
 
+    if (room.avilableRoom === 0) {
+      await Interested.deleteMany({ room: id });
+    }
+
     res.status(200).json({ success: true, room });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -665,6 +676,11 @@ export const verifyRoom = async (req, res) => {
     }
     room.isVerified = true;
     await room.save();
+    const owner = await User.findById(room.owner);
+
+    if (owner) {
+      await sendRoomVerifiedMail(owner.email, room.title);
+    }
     res
       .status(200)
       .json({ success: true, message: "room verified successfully" });

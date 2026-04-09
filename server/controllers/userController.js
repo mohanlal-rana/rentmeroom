@@ -1,4 +1,5 @@
 import User from "../models/userModel.js";
+import { sendOwnerRequestToAdmin, sendOwnerVerifiedMail } from "../utils/emailEvents.js";
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -30,13 +31,14 @@ export const verifyOwner = async (req, res) => {
     }
     user.owner.isVerified = true;
     await user.save();
+    await sendOwnerVerifiedMail(user.email);
     res.status(200).json({ message: "owner verified successfully", user });
   } catch (error) {
     res.status(500).json({ message: "server error", error: error.message });
   }
 };
 export const deleteUser = async (req, res) => {
-    console.log("inside delete user")
+  console.log("inside delete user")
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) {
@@ -76,8 +78,7 @@ export const beOwner = async (req, res) => {
     if (user.role === "owner") {
       return res.status(400).json({ message: "User is already an owner" });
     }
-     console.log(phone,govIDNumber,govIDImage,govIDType)
-     
+
     if (!phone || !govIDType || !govIDNumber || !govIDImage) {
       return res
         .status(400)
@@ -101,6 +102,13 @@ export const beOwner = async (req, res) => {
     };
 
     await user.save();
+
+    const admin = await User.findOne({ role: "admin" });
+
+    if (admin) {
+      await sendOwnerRequestToAdmin(admin.email, user.name);
+    }
+
 
     res.status(200).json({
       message: "User upgraded to owner successfully",

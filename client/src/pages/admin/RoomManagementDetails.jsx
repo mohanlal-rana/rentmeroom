@@ -316,6 +316,7 @@ export default function RoomManagementDetails() {
 
             {room.paymentSlip?.url ? (
               <div className="space-y-3">
+                <span className="text-lg font-semibold text-[#837ab6] mb-3">Paid Rs {500 * room.noOfRoom}</span>
                 <div className="relative group cursor-pointer">
                   <img
                     src={`${API}${room.paymentSlip.url}`}

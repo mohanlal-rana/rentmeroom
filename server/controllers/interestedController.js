@@ -1,35 +1,45 @@
 import Interested from "../models/interestedMOdel.js";
 import Room from "../models/roomModel.js";
 import mongoose from "mongoose";
-import sendContactedMail from "../utils/sendContactedMail.js";
+import User from "../models/userModel.js";
+import { sendInterestConfirmedMailToUser, sendInterestMailToOwner } from "../utils/emailEvents.js";
 
 // User marks interest
 export const markInterested = async (req, res) => {
   try {
     const { roomId, message } = req.body;
 
+    // Validate roomId
     if (!mongoose.Types.ObjectId.isValid(roomId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid room ID" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid room ID",
+      });
     }
+
+    // ✅ Fetch the room first
+    const room = await Room.findById(roomId);
+    if (!room || !room.isVerified) {
+      return res.status(404).json({
+        success: false,
+        message: "Room not found or not verified",
+      });
+    }
+
+    // ✅ Check availability
     if (!room.avilableRoom || room.avilableRoom < 1) {
       return res.status(400).json({
         success: false,
         message: "Sorry, no rooms are currently available for this listing.",
       });
     }
-    const room = await Room.findById(roomId);
-    if (!room || !room.isVerified) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Room not found or not verified" });
-    }
 
+    // Check if user already marked interest
     const alreadyInterested = await Interested.findOne({
       user: req.user._id,
       room: roomId,
     });
+
     if (alreadyInterested) {
       return res.status(400).json({
         success: false,
@@ -37,12 +47,22 @@ export const markInterested = async (req, res) => {
       });
     }
 
+    // Save interest
     const interested = new Interested({
       user: req.user._id,
       room: roomId,
       message,
     });
     await interested.save();
+
+    // Fetch owner and user
+    const owner = await User.findById(room.owner);
+    const user = await User.findById(req.user._id);
+
+    // Send email to owner
+    if (owner && user) {
+      await sendInterestMailToOwner(owner.email, room.title, user.name);
+    }
 
     res.status(200).json({
       success: true,
@@ -134,8 +154,14 @@ export const markAsContacted = async (req, res) => {
     interest.status = "contacted";
     await interest.save();
 
-    // ✅ Send email to interested user
-    await sendContactedMail(interest.user.email, interest.room.title);
+    const owner = await User.findById(req.user._id);
+
+    await sendInterestConfirmedMailToUser(
+      interest.user.email,
+      interest.user.name,
+      interest.room.title,
+      owner.name
+    );
 
     res.status(200).json({
       success: true,
